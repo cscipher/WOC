@@ -1,4 +1,6 @@
 import 'package:WOC/data/storyData.dart';
+import 'package:WOC/screens/callLogs.dart';
+import 'package:WOC/screens/chatPage.dart';
 import 'package:WOC/screens/home_screen.dart';
 import 'package:WOC/screens/profileSet.dart';
 import 'package:WOC/widgets/Stories.dart';
