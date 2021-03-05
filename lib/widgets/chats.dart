@@ -1,3 +1,4 @@
+import 'package:WOC/screens/chatPage.dart';
 import 'package:flutter/material.dart';
 import '../data/userListData.dart';
 import '../models/chatsModel.dart';
@@ -25,6 +26,8 @@ class _ChatListState extends State<ChatList> {
             ))),
             margin: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
             child: ListTile(
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (ctx) => ChatPage())),
               leading: CircleAvatar(
                 backgroundColor: accent2,
                 radius: 30,
