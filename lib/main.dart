@@ -1,8 +1,10 @@
 import 'package:WOC/data/storyData.dart';
 import 'package:WOC/screens/callLogs.dart';
+import 'package:WOC/screens/callScreen.dart';
 import 'package:WOC/screens/chatPage.dart';
 import 'package:WOC/screens/home_screen.dart';
 import 'package:WOC/screens/profileSet.dart';
+import 'package:WOC/screens/videoCallScreen.dart';
 import 'package:WOC/widgets/Stories.dart';
 import 'package:flutter/material.dart';
 import './screens/splash_screen.dart';
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'Material App',
-        home: HomeScreen(
+        home: VideoCallScreen(
             // stories: allStories,
             ),
         theme: ThemeData(
