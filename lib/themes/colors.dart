@@ -7,6 +7,7 @@ final Color primaryColor = Color(0xFF27DF99);
 final Color accent1 = Color(0xFF001038);
 final Color accent2 = Color(0xFF868A9A);
 final Color accent3 = Color(0xFFF9F9FF);
+final Color accent4 = Color(0xFFE4FFEF);
 
 //neutral
 final Color neutralOrange = Color(0xFFFBA709);
