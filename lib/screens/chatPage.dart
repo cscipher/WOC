@@ -17,13 +17,16 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         title: Text('Cipher'),
         leading: Container(
-          decoration: BoxDecoration(boxShadow: [shadow]),
-          child: FlatButton(
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              // color: primaryColor,
-            ),
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: RaisedButton(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             color: Colors.white,
+            child: Icon(
+              Icons.arrow_back,
+              color: primaryColor,
+              // size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),

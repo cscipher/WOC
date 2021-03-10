@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:WOC/data/storyData.dart';
 import 'package:WOC/screens/callLogs.dart';
 import 'package:WOC/screens/homeChatList.dart';
@@ -17,18 +18,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int navItem = 0;
+  String uid;
 
   Widget showScreen() {
     if (navItem == 0) return HomeChatList();
-    if (navItem == 1) return HomeChatList();
-    if (navItem == 2) return HomeChatList();
+    if (navItem == 1) return Scaffold();
+    if (navItem == 2)
+      return Scaffold(
+        body: Text(uid),
+      );
     if (navItem == 3) return CallLogs();
-    if (navItem == 4) return HomeChatList();
+    if (navItem == 4) return Scaffold();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (FirebaseAuth.instance.currentUser != null)
+      uid = FirebaseAuth.instance.currentUser.uid;
   }
 
   @override
   Widget build(BuildContext context) {
-    final dynamic = MediaQuery.of(context);
     final AppBar appBar = AppBar(
       title: Text('PROJECT-Y'),
     );
@@ -52,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TabItem(icon: Icons.call, title: 'Logs'),
           TabItem(icon: Icons.settings, title: 'Settings'),
         ],
-        initialActiveIndex: 1,
+        initialActiveIndex: 0,
         onTap: (int i) {
           setState(() {
             navItem = i;

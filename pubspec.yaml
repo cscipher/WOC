@@ -32,6 +32,8 @@ dependencies:
   firebase_auth: ^0.18.0+1
   cloud_firestore: ^0.14.0+2
   firebase_storage: ^4.0.0
+  firebase_core: ^0.5.0
+
 
   responsive_builder: ^0.3.0
   camera: ^0.5.8+5
@@ -46,6 +48,7 @@ dependencies:
   get_it: ^5.0.1
   contacts_service: ^0.4.6
   font_awesome_flutter: ^8.8.1
+
 
   #dateFormat
   intl: ^0.16.0

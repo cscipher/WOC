@@ -2,8 +2,11 @@ import 'dart:async';
 import 'package:WOC/screens/reg_screen.dart';
 import '../themes/colors.dart';
 import 'package:flutter/material.dart';
+import './home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
+  final bool logged;
+  SplashScreen(this.logged);
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -12,8 +15,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     Timer(Duration(seconds: 2), () {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => RegScreen()), (route) => false);
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) {
+        return widget.logged ? HomeScreen() : RegScreen();
+      }), (route) => false);
     });
     super.initState();
   }

@@ -1,11 +1,60 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../themes/colors.dart';
+import '../screens/home_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class OtpInput extends StatelessWidget {
-  const OtpInput({
-    Key key,
-  }) : super(key: key);
+class OtpInput extends StatefulWidget {
+  final String phoneNum;
+
+  const OtpInput({Key key, @required this.phoneNum}) : super(key: key);
+
+  @override
+  _OtpInputState createState() => _OtpInputState();
+}
+
+class _OtpInputState extends State<OtpInput> {
+  // final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _controller = TextEditingController();
+  String oid;
+  String _vfcode;
+
+  _sendOtp() async {
+    print('called');
+    await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: widget.phoneNum,
+        codeAutoRetrievalTimeout: (String verificationId) {
+          print('codeAutoRetrievalTimeout');
+        },
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          print('called2');
+          await FirebaseAuth.instance
+              .signInWithCredential(credential)
+              .then((value) async {
+            if (value.user != null) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                  (route) => false).then((value) => print('done'));
+            }
+          });
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print(e.message);
+        },
+        codeSent: (String vfId, int resendToken) {
+          setState(() {
+            _vfcode = vfId;
+          });
+        },
+        timeout: Duration(seconds: 120));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _sendOtp();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +67,23 @@ class OtpInput extends StatelessWidget {
         SizedBox(
           height: 10,
         ),
-        Text('An authentication code has been sent to ',
+        Text('An authentication code has been sent to ${widget.phoneNum}',
             style: TextStyle(fontSize: 16)),
         SizedBox(
           height: 35,
         ),
         PinCodeTextField(
           length: 6,
-          onChanged: (_) {},
+          controller: _controller,
+          textInputType:
+              TextInputType.numberWithOptions(signed: true, decimal: false),
+          onChanged: (a) {
+            print(a);
+          },
+          onCompleted: (value) {
+            oid = value;
+            print('oid' + oid);
+          },
           pinTheme: PinTheme(
               fieldWidth: MediaQuery.of(context).size.width * 0.12,
               shape: PinCodeFieldShape.box,
@@ -39,10 +97,27 @@ class OtpInput extends StatelessWidget {
         ),
         FlatButton(
           height: 50,
+          onPressed: () async {
+            try {
+              await FirebaseAuth.instance
+                  .signInWithCredential(PhoneAuthProvider.credential(
+                      verificationId: _vfcode, smsCode: oid))
+                  .then((value) async {
+                if (value.user != null) {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false);
+                }
+              });
+            } catch (e) {
+              FocusScope.of(context).unfocus();
+              print('invaliddddddddddddd');
+            }
+          },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(7.0),
           ),
-          onPressed: () {},
           child: Text(
             'Submit',
             style: TextStyle(color: Colors.white, fontSize: 16),
