@@ -4,7 +4,7 @@ class ChatModel {
   final String message;
   final String senderId;
   final String recieverId;
-  final String timeStamp;
+  final timeStamp;
 
   ChatModel(
       {@required this.message,

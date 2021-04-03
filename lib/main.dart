@@ -1,23 +1,35 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:WOC/data/storyData.dart';
-import 'package:WOC/screens/callLogs.dart';
-import 'package:WOC/screens/callScreen.dart';
-import 'package:WOC/screens/chatPage.dart';
-import 'package:WOC/screens/home_screen.dart';
-import 'package:WOC/screens/profileSet.dart';
-import 'package:WOC/screens/videoCallScreen.dart';
-import 'package:WOC/widgets/Stories.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import './screens/splash_screen.dart';
 import './themes/colors.dart';
-import './screens/reg_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  var initializationSettingsAndroid =
+  AndroidInitializationSettings('ic_launcher');
+  var initializationSettingsIOS = IOSInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      onDidReceiveLocalNotification:
+          (int id, String title, String body, String payload) async {});
+  var initializationSettings = InitializationSettings(android:initializationSettingsAndroid, iOS:initializationSettingsIOS);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onSelectNotification: (String payload) async {
+        if (payload != null) {
+          debugPrint('notification payload: ' + payload);
+        }
+      });
   await Firebase.initializeApp();
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   String uid;
@@ -26,17 +38,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'Material App',
-        // home: StreamBuilder(
-        //   stream: FirebaseAuth.instance.authStateChanges(),
-        //   builder: (context, snapshot) {
-        //     if (snapshot.hasData) {
-        //       return SplashScreen(true);
-        //     } else {
-        //       return SplashScreen(false);
-        //     }
-        //   },
-        // ),
-        home: NewProfile('1234567890'),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return SplashScreen(true);
+            } else {
+              return SplashScreen(false);
+            }
+          },
+        ),
+        // home: Settings(),
+
+        // home: NewProfile('1234554321'),
         theme: ThemeData(
           fontFamily: 'Roboto',
           appBarTheme: AppBarTheme(
@@ -48,10 +62,6 @@ class MyApp extends StatelessWidget {
                       color: accent1,
                       fontSize: 22,
                       fontWeight: FontWeight.bold))),
-          // textTheme: TextTheme(
-          //   bodyText1: TextStyle(fontFamily: 'Roboto'),
-          //   caption: TextStyle(fontFamily: 'Roboto'),
-          // )),
         ));
   }
 }

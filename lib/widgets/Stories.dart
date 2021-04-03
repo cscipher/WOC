@@ -1,3 +1,5 @@
+import 'package:WOC/data/storyData.dart';
+import 'package:WOC/screens/home_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../models/userModel.dart';
@@ -182,7 +184,7 @@ class _StoryScreenState extends State<StoryScreen>
           ..initialize().then((_) {
             setState(() {});
             if (_videoController.value.initialized) {
-              _animController.duration = _videoController.value.duration;
+              _animController.duration = Duration(seconds: 5);
               _videoController.play();
               _animController.forward();
             }
@@ -297,7 +299,9 @@ class UserInfo extends StatelessWidget {
             size: 30.0,
             color: Colors.white,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.push(
+              context, MaterialPageRoute(builder: (context) => HomeScreen())),
+          // onPressed: () => Navigator.pushReplacementNamed(context, HomeScreen())
         ),
       ],
     );

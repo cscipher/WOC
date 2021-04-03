@@ -10,7 +10,7 @@ class HomeChatList extends StatelessWidget {
         children: [
           Container(
             // child: StoryBar(),
-            height: MediaQuery.of(context).size.height * 0.12,
+            height: MediaQuery.of(context).size.height * 0.13,
           ),
           Expanded(
             child: Container(

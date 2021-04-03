@@ -1,3 +1,6 @@
+import 'package:WOC/screens/contactsList.dart';
+import 'package:WOC/screens/reg_screen.dart';
+import 'package:WOC/screens/settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:WOC/data/storyData.dart';
 import 'package:WOC/screens/callLogs.dart';
@@ -12,23 +15,31 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import '../widgets/chats.dart';
 
 class HomeScreen extends StatefulWidget {
+  int nav;
+  HomeScreen({this.nav = 0});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int navItem = 0;
   String uid;
 
+  logout() {
+    setState(() {
+      FirebaseAuth.instance.signOut();
+      print(FirebaseAuth.instance.currentUser.uid);
+    });
+  }
+
   Widget showScreen() {
-    if (navItem == 0) return HomeChatList();
-    if (navItem == 1) return Scaffold();
-    if (navItem == 2)
+    if (widget.nav == 0) return HomeChatList();
+    if (widget.nav == 1) return ContactsList();
+    if (widget.nav == 2)
       return Scaffold(
         body: Text(uid),
       );
-    if (navItem == 3) return CallLogs();
-    if (navItem == 4) return Scaffold();
+    if (widget.nav == 3) return CallLogs();
+    if (widget.nav == 4) return Settings();
   }
 
   @override
@@ -42,35 +53,40 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final AppBar appBar = AppBar(
       title: Text('PROJECT-Y'),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.delete),
+          onPressed: logout,
+        )
+      ],
     );
-    return Scaffold(
-      appBar: appBar,
-      bottomNavigationBar: ConvexAppBar(
-        elevation: 5,
-        height: 60,
-        style: TabStyle.fixedCircle,
-        backgroundColor: Colors.white,
-        color: accent2,
-        curveSize: 100,
-        activeColor: primaryColor,
-        items: [
-          TabItem(
-            icon: Icons.chat,
-            title: 'Chat',
-          ),
-          TabItem(icon: Icons.verified_user, title: 'Profile'),
-          TabItem(icon: FontAwesomeIcons.solidPlayCircle),
-          TabItem(icon: Icons.call, title: 'Logs'),
-          TabItem(icon: Icons.settings, title: 'Settings'),
-        ],
-        initialActiveIndex: 0,
-        onTap: (int i) {
-          setState(() {
-            navItem = i;
-          });
-        },
-      ),
-      body: showScreen(),
-    );
+    return FirebaseAuth.instance.currentUser != null
+        ? Scaffold(
+            appBar: widget.nav == 0 ? appBar : null,
+            bottomNavigationBar: ConvexAppBar(
+              elevation: 5,
+              height: 60,
+              style: TabStyle.fixedCircle,
+              backgroundColor: Colors.white,
+              color: accent2,
+              curveSize: 100,
+              activeColor: primaryColor,
+              items: [
+                TabItem(icon: Icons.chat, title: 'Chat'),
+                TabItem(icon: FontAwesomeIcons.comment, title: 'New Chat'),
+                TabItem(icon: FontAwesomeIcons.solidPlayCircle),
+                TabItem(icon: Icons.call, title: 'Logs'),
+                TabItem(icon: Icons.settings, title: 'Settings'),
+              ],
+              initialActiveIndex: 0,
+              onTap: (int i) {
+                setState(() {
+                  widget.nav = i;
+                });
+              },
+            ),
+            body: showScreen(),
+          )
+        : RegScreen();
   }
 }

@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:WOC/themes/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import './home_screen.dart';
 
 class NewProfile extends StatefulWidget {
@@ -14,52 +19,149 @@ class NewProfile extends StatefulWidget {
 }
 
 class _NewProfileState extends State<NewProfile> {
-  final TextEditingController _nameController = TextEditingController();
+  String uid = FirebaseAuth.instance.currentUser.uid;
+  static String name;
+  Map docs;
+  static String status;
+  String picUrl = '';
+  List chatUsers = [];
+  final TextEditingController _nameController =
+      TextEditingController(text: name);
+  final TextEditingController _statusController =
+      TextEditingController(text: status);
+  File _image;
 
-  final TextEditingController _statusController = TextEditingController();
+  Future _imgFromGallery() async {
+    File image = await ImagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (image != null) {
+      _cropImage(image);
+    }
+  }
 
-  String name;
+  Future<Null> _cropImage(File picked) async {
+    File croppedFile = await ImageCropper.cropImage(
+        sourcePath: picked.path,
+        aspectRatioPresets: Platform.isAndroid
+            ? [
+                CropAspectRatioPreset.square,
+              ]
+            : [
+                CropAspectRatioPreset.square,
+              ],
+        androidUiSettings: AndroidUiSettings(
+          // toolbarTitle: 'Cropper',
+          toolbarColor: primaryColor,
+          toolbarWidgetColor: Colors.white,
+          hideBottomControls: true,
+          initAspectRatio: CropAspectRatioPreset.original,
+          // cropGridColor: primaryColor,
+          activeControlsWidgetColor: primaryColor,
+        ),
+        iosUiSettings: IOSUiSettings(
+          title: 'Cropper',
+        ));
+    if (croppedFile != null) {
+      picked = croppedFile;
+      setState(() {
+        _image = picked;
+      });
+    }
+  }
 
-  String status;
+  readUser() async {
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('users');
+    await collectionRef.doc(uid).get().then((event) {
+      setState(() {
+        docs = event.data();
+        if (docs != null) {
+          name = docs['name'];
+          status = docs['status'];
+          picUrl = docs['photourl'];
+          chatUsers = docs['chatUsers'];
+          _nameController.text = name;
+          _statusController.text = status;
+        }
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    readUser();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Map docs;
-    addUser() async {
-      //uid
-      String uid = FirebaseAuth.instance.currentUser.uid;
+    // addUser() async {
+    //   // Data
+    //   Map<String, dynamic> data = {
+    //     'name': name,
+    //     'status': status,
+    //     'authId': uid,
+    //     'phnNo': widget.phoneNum,
+    //     'photourl': picUrl,
+    //     'chatUsers': chatUsers
+    //   };
 
-      // Data
+    //   // Adds user to db collection
+    //   CollectionReference collectionRef =
+    //       FirebaseFirestore.instance.collection('users');
+
+    // await collectionRef.doc(uid).set(data).then((value) {
+    // Navigator.pushAndRemoveUntil(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) => HomeScreen(),
+    //     ),
+    //     (route) => false);
+    // });
+    // }
+    Future addUser() async {
       Map<String, dynamic> data = {
         'name': name,
         'status': status,
-        // 'authId': uid,
+        'authId': uid,
         'phnNo': widget.phoneNum,
-        'photourl': 'https://picsum.photos/500'
+        'photourl': picUrl,
+        'chatUsers': chatUsers
       };
-
-      // Adds user to db collection
-      CollectionReference collectionRef =
-          FirebaseFirestore.instance.collection('users');
-
-      await collectionRef.doc(uid).set(data).then((value) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(),
-            ),
-            (route) => false);
-      });
-    }
-
-    readUser() {
-      CollectionReference collectionRef =
-          FirebaseFirestore.instance.collection('users');
-      collectionRef.snapshots().listen((snap) {
-        setState(() {
-          docs = snap.docs[0].data();
+      if (_image != null) {
+        final StorageReference fbStorage =
+            FirebaseStorage.instance.ref().child('users/$uid.jpg');
+        final StorageUploadTask task = fbStorage.putFile(_image);
+        await task.onComplete;
+        print('upload complete');
+        await fbStorage.getDownloadURL().then((url) {
+          setState(() {
+            picUrl = url;
+            CollectionReference ref =
+                FirebaseFirestore.instance.collection('users');
+            ref.doc(uid).update(data).then((value) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(),
+                  ),
+                  (route) => false);
+            });
+          });
         });
-      });
+      } else {
+        CollectionReference ref =
+            FirebaseFirestore.instance.collection('users');
+        ref.doc(uid).update(data).then((value) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+              ),
+              (route) => false);
+        });
+      }
     }
 
     return Scaffold(
@@ -74,21 +176,28 @@ class _NewProfileState extends State<NewProfile> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
             ),
-            Container(
-              height: MediaQuery.of(context).size.height * 0.25,
-              width: MediaQuery.of(context).size.width * 0.5,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(200))),
-              child: Center(
-                child: Text(
-                  'PROJECT-Y!',
-                  style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 36,
-                      fontWeight: FontWeight.w500),
+            Stack(
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    backgroundImage: _image == null
+                        ? NetworkImage(picUrl)
+                        : FileImage(_image),
+                    radius: MediaQuery.of(context).size.width * 0.25,
+                  ),
                 ),
-              ),
+                Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.25,
+                        vertical: MediaQuery.of(context).size.width * 0.1),
+                    alignment: Alignment.bottomRight,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    child: FloatingActionButton(
+                      backgroundColor: primaryColor,
+                      onPressed: _imgFromGallery,
+                      child: Icon(Icons.add),
+                    ))
+              ],
             ),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
@@ -97,7 +206,10 @@ class _NewProfileState extends State<NewProfile> {
               padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
               child: TextField(
                 controller: _nameController,
-                onEditingComplete: () => name = _nameController.text,
+                onEditingComplete: () {
+                  name = _nameController.text;
+                  FocusScope.of(context).unfocus();
+                },
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                   labelText: 'Display Name',
@@ -115,7 +227,10 @@ class _NewProfileState extends State<NewProfile> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
               child: TextField(
-                onEditingComplete: () => status = _statusController.text,
+                onEditingComplete: () {
+                  status = _statusController.text;
+                  FocusScope.of(context).unfocus();
+                },
                 controller: _statusController,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
@@ -146,9 +261,7 @@ class _NewProfileState extends State<NewProfile> {
                 minWidth: MediaQuery.of(context).size.width * 0.9,
                 color: primaryColor,
               ),
-            ),
-            FlatButton(onPressed: readUser, child: Text('read!')),
-            Container(child: Text(docs.toString()))
+            )
           ],
         ),
       ),

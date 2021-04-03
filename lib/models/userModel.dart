@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 class User {
   final String name;
   final int phoneNum;
-  final String authId;
+  final String id;
   final String profileImageUrl;
-  
+  final List<String> chatUsers;
 
   User(
       {@required this.name,
-       this.phoneNum,
-       this.authId,
-      @required this.profileImageUrl});
+      this.phoneNum,
+      this.id,
+      @required this.profileImageUrl,
+      this.chatUsers});
 }

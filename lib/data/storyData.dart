@@ -8,6 +8,7 @@ final List<Story> allStories = [
       media: MediaType.image,
       duration: const Duration(seconds: 10),
       user: User(
+        id:'11',
         name: 'John',
         profileImageUrl: 'https://wallpapercave.com/wp/AYWg3iu.jpg',
       )),
@@ -16,6 +17,7 @@ final List<Story> allStories = [
       media: MediaType.image,
       duration: const Duration(seconds: 10),
       user: User(
+        id:'12',
         name: 'Harsh',
         profileImageUrl: 'https://wallpapercave.com/wp/AYWg3iu.jpg',
       )),
@@ -24,6 +26,7 @@ final List<Story> allStories = [
       media: MediaType.image,
       duration: const Duration(seconds: 10),
       user: User(
+        id:'13',
         name: 'Cipher',
         profileImageUrl: 'https://wallpapercave.com/wp/AYWg3iu.jpg',
       )),
@@ -32,6 +35,7 @@ final List<Story> allStories = [
       media: MediaType.image,
       duration: const Duration(seconds: 10),
       user: User(
+        id:'14',
         name: 'Viper',
         profileImageUrl: 'https://wallpapercave.com/wp/AYWg3iu.jpg',
       )),

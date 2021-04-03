@@ -1,3 +1,5 @@
+import 'package:WOC/screens/profileSet.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../themes/colors.dart';
@@ -19,6 +21,19 @@ class _OtpInputState extends State<OtpInput> {
   String oid;
   String _vfcode;
 
+  checkExist(String myId) async {
+    bool check = false;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(myId)
+        .get()
+        .then((value) {
+      print(value.data());
+      value.data().isNotEmpty ? check = true : check = false;
+    });
+    return check;
+  }
+
   _sendOtp() async {
     print('called');
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -32,10 +47,11 @@ class _OtpInputState extends State<OtpInput> {
               .signInWithCredential(credential)
               .then((value) async {
             if (value.user != null) {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                  (route) => false).then((value) => print('done'));
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                var myId = value.user.uid;
+                checkExist(myId) ? NewProfile(widget.phoneNum) : HomeScreen();
+              }), (route) => false).then((value) => print('done'));
             }
           });
         },
@@ -106,7 +122,8 @@ class _OtpInputState extends State<OtpInput> {
                 if (value.user != null) {
                   Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => NewProfile(widget.phoneNum)),
                       (route) => false);
                 }
               });
