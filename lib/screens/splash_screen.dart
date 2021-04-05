@@ -24,12 +24,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var radius = MediaQuery.of(context).size.height * 0.30;
     return Scaffold(
       backgroundColor: neutralGreen,
       body: Center(
           child: Container(
-        height: MediaQuery.of(context).size.height * 0.3,
-        width: MediaQuery.of(context).size.width * 0.6,
+        height: radius,
+        width: radius,
         decoration: BoxDecoration(
             color: primaryColor,
             borderRadius: BorderRadius.all(Radius.circular(200))),

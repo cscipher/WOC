@@ -93,14 +93,26 @@ class _SettingsState extends State<Settings> {
           picUrl = url;
           CollectionReference ref =
               FirebaseFirestore.instance.collection('users');
-          ref
-              .doc(uid)
-              .update({'name': name, 'status': status, 'photourl': picUrl});
+          ref.doc(uid).update({
+            'name': name,
+            'status': status,
+            'photourl': picUrl
+          }).then((value) {
+            Scaffold.of(context).showSnackBar(SnackBar(
+                content: const Text('Updated!'),
+                duration: const Duration(seconds: 3),
+                padding: EdgeInsets.only(bottom: 15, left: 15, top: 5)));
+          });
         });
       });
     } else {
       CollectionReference ref = FirebaseFirestore.instance.collection('users');
-      ref.doc(uid).update({'name': name, 'status': status});
+      ref.doc(uid).update({'name': name, 'status': status}).then((value) {
+        Scaffold.of(context).showSnackBar(SnackBar(
+            content: const Text('Updated!'),
+            duration: const Duration(seconds: 3),
+            padding: EdgeInsets.only(bottom: 15, left: 15, top: 5)));
+      });
     }
   }
 
@@ -118,7 +130,7 @@ class _SettingsState extends State<Settings> {
         title: Text('Profile'),
       ),
       body: Container(
-        child: picUrl == ''
+        child: picUrl == null || name == null || status == null
             ? Container(
                 color: primaryColor.withAlpha(90),
                 child: SpinKitFadingCube(

@@ -29,13 +29,14 @@ class _ContactsListState extends State<ContactsList> {
     return AppBar(
         iconTheme: IconThemeData(color: accent1),
         title: new Text('New Message'),
-        leading: IconButton(icon: Icon(Icons.refresh),
-        onPressed: (){
-          // DatabaseHelper.db.deleteDatabase();
-          // Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => HomeScreen(nav: 1,)));
-          appUserContacts.clear();
-          getAllContacts();
-        }),
+        leading: IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              // DatabaseHelper.db.deleteDatabase();
+              // Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => HomeScreen(nav: 1,)));
+              appUserContacts.clear();
+              getAllContacts();
+            }),
         actions: [searchBar.getSearchAction(context)]);
   }
 
@@ -62,7 +63,7 @@ class _ContactsListState extends State<ContactsList> {
         //     filteredContacts.clear();
         //   });
         // },
-        onSubmitted: (value){
+        onSubmitted: (value) {
           filteredContacts.clear();
         },
         onChanged: (value) {
@@ -99,12 +100,12 @@ class _ContactsListState extends State<ContactsList> {
               print('Contafcts:::$appUserContacts');
             });
             break;
-          } else if(cntct.phones.isNotEmpty){
+          } else if (cntct.phones.isNotEmpty) {
             var lcnt = pc.split(' ').join();
 
             await ref.where('phnNo', isEqualTo: lcnt).get().then((value) async {
               var contactMap = value.docs;
-              if (contactMap.length!=0 && contactMap != null) {
+              if (contactMap.length != 0 && contactMap != null) {
                 print('not::');
                 print(contactMap);
                 var map = contactMap.first.data();
@@ -119,19 +120,20 @@ class _ContactsListState extends State<ContactsList> {
                 // });
                 var tempQuery = await DatabaseHelper.db.queryAll();
                 bool flag = true;
-                for(var tc in tempQuery){
-                  if(map['authId']==tc['id']) {
+                for (var tc in tempQuery) {
+                  if (map['authId'] == tc['id']) {
                     flag = false;
                     break;
                   }
                 }
-                if(flag) DatabaseHelper.db.insert({
-                  DatabaseHelper.colId: map['authId'],
-                  DatabaseHelper.colPic: map['photourl'],
-                  DatabaseHelper.colNum: map['phnNo'],
-                  DatabaseHelper.colStatus: map['status'],
-                  DatabaseHelper.colName: cntct.displayName
-                }).then((value) => print('db insert....'));
+                if (flag)
+                  DatabaseHelper.db.insert({
+                    DatabaseHelper.colId: map['authId'],
+                    DatabaseHelper.colPic: map['photourl'],
+                    DatabaseHelper.colNum: map['phnNo'],
+                    DatabaseHelper.colStatus: map['status'],
+                    DatabaseHelper.colName: cntct.displayName
+                  }).then((value) => print('db insert....'));
               }
             });
           }
@@ -207,10 +209,6 @@ class _ContactsListState extends State<ContactsList> {
         : [];
     setState(() {
       contacts = _contacts;
-      // _contacts.map((e) {
-      //   e.displayName.toLowerCase();
-      //   contacts.add(e);
-      // });
     });
     await getStatus();
   }
@@ -221,74 +219,80 @@ class _ContactsListState extends State<ContactsList> {
       // switchContact = appUserContacts;
       print('length:::${appUserContacts}');
       switchContact =
-      filteredContacts.length == 0 ? appUserContacts : filteredContacts;
+          filteredContacts.length == 0 ? appUserContacts : filteredContacts;
     });
     return Scaffold(
       appBar: searchBar.build(context),
       body: Container(
-        child: appUserContacts.isEmpty ? Container(
-          color: primaryColor.withAlpha(90),
-          child: SpinKitFadingCube(
-            color: Colors.white,
-            size: 50.0,
-          ),
-        ) : Container(
-          padding: const EdgeInsets.all(18.0),
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              var user = switchContact[index];
-              // var items = contacts[index].phones;
-              // bool check = items.isEmpty;
-              return Container(
-                  decoration: BoxDecoration(
-                      border: Border(
-                          bottom: BorderSide(
-                    color: accent2.withAlpha(80),
-                  ))),
-                  // padding: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
-                  // child: FlatButton(
-                  //   child: Text('reset'),
-                  //   onPressed: DatabaseHelper.db.deleteDatabase,
-                  // ),
-                  child: ListTile(
-                    leading: GestureDetector(
-                      onTap: (){
-                        // Navigator.of(context).push(HeroDialogRoute)
-                        createPopup(context, user.prefix, user.jobTitle);
-                      },
-                      child: CircleAvatar(
-                          child: Container(
-                            child: user.prefix == '' || user.prefix == null ? Container(
-                              // color: primaryColor.withAlpha(90),
-                              child: SpinKitPulse(
-                                color: Colors.white,
-                                size: 30.0,
-                              ),
-                            ) : null,
-                          ),
-                          backgroundColor: accent2,
-                          radius: 30,
-                          backgroundImage:
-                          NetworkImage(user.prefix ?? '')
-                      ),
-                    ),
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (ctx) => ChatPage(
-                                  user.androidAccountName, //uid
-                                  user.displayName))),
-                      title: Text(user.displayName.toString(),
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      subtitle: Text(user.jobTitle ?? '',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w100))));
-            },
-            itemCount: switchContact.length,
-          ),
-        ),
+        child: appUserContacts.isEmpty
+            ? Container(
+                color: primaryColor.withAlpha(90),
+                child: SpinKitFadingCube(
+                  color: Colors.white,
+                  size: 50.0,
+                ),
+              )
+            : Container(
+                padding: const EdgeInsets.all(18.0),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    var user = switchContact[index];
+                    // var items = contacts[index].phones;
+                    // bool check = items.isEmpty;
+                    return Container(
+                        decoration: BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(
+                          color: accent2.withAlpha(80),
+                        ))),
+                        // padding: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
+                        // child: FlatButton(
+                        //   child: Text('reset'),
+                        //   onPressed: DatabaseHelper.db.deleteDatabase,
+                        // ),
+                        child: ListTile(
+                            leading: GestureDetector(
+                              onTap: () {
+                                // Navigator.of(context).push(HeroDialogRoute)
+                                createPopup(
+                                    context, user.prefix, user.jobTitle);
+                              },
+                              child: CircleAvatar(
+                                  child: Container(
+                                    child:
+                                        user.prefix == '' || user.prefix == null
+                                            ? Container(
+                                                // color: primaryColor.withAlpha(90),
+                                                child: SpinKitPulse(
+                                                  color: Colors.white,
+                                                  size: 30.0,
+                                                ),
+                                              )
+                                            : null,
+                                  ),
+                                  backgroundColor: accent2,
+                                  radius: 30,
+                                  backgroundImage:
+                                      NetworkImage(user.prefix ?? '')),
+                            ),
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (ctx) => ChatPage(
+                                        user.androidAccountName, //uid
+                                        user.displayName))),
+                            title: Text(user.displayName.toString(),
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            subtitle: Text(user.jobTitle ?? '',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w100))));
+                  },
+                  itemCount: switchContact.length,
+                ),
+              ),
       ),
     );
   }

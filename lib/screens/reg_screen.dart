@@ -11,6 +11,7 @@ class RegScreen extends StatefulWidget {
 class _RegScreenState extends State<RegScreen> {
   @override
   Widget build(BuildContext context) {
+    var radius = MediaQuery.of(context).size.height * 0.30;
     return Scaffold(
       body: Container(
         height: double.infinity,
@@ -21,11 +22,11 @@ class _RegScreenState extends State<RegScreen> {
           child: Column(
             children: [
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.15,
+                height: MediaQuery.of(context).size.height * 0.10,
               ),
               Container(
-                height: MediaQuery.of(context).size.height * 0.3,
-                width: MediaQuery.of(context).size.width * 0.6,
+                height: radius,
+                width: radius,
                 decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [shadow],
@@ -44,7 +45,9 @@ class _RegScreenState extends State<RegScreen> {
                 height: MediaQuery.of(context).size.height * 0.1,
               ),
               // NumberInput(formKey: formKey, number: number, controller: controller)
-              // OtpInput()
+              // OtpInput(
+              //   phoneNum: '0000000000',
+              // )
               NumberInput()
             ],
           ),

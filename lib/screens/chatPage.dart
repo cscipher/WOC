@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
       var chatUsers = snap.data()['chatUsers'];
       print('chatusers:::$chatUsers');
       bool flag = false;
-      if (chatUsers != null){
+      if (chatUsers != null) {
         for (var user in chatUsers) {
           if (user == widget.rUid) {
             flag = true;
@@ -86,10 +86,30 @@ class _ChatPageState extends State<ChatPage> {
           }
         }
       }
-      if(!flag || chatUsers == null){
-        if(chatUsers == null) chatUsers = [];
+      if (!flag || chatUsers == null) {
+        if (chatUsers == null) chatUsers = [];
         chatUsers.add(widget.rUid);
-        ref.doc(uid).update({'chatUsers':chatUsers}).then((value) => print('updated!'));
+        ref.doc(uid).update({'chatUsers': chatUsers}).then(
+            (value) => print('updated!'));
+      }
+    });
+    await ref.doc(widget.rUid).get().then((snap) {
+      var chatUsers1 = snap.data()['chatUsers1'];
+      print('chatusers1:::$chatUsers1');
+      bool flag = false;
+      if (chatUsers1 != null) {
+        for (var user in chatUsers1) {
+          if (user == widget.rUid) {
+            flag = true;
+            break;
+          }
+        }
+      }
+      if (!flag || chatUsers1 == null) {
+        if (chatUsers1 == null) chatUsers1 = [];
+        chatUsers1.add(uid);
+        ref.doc(widget.rUid).update({'chatUsers': chatUsers1}).then(
+            (value) => print('updated!'));
       }
     });
   }
@@ -109,7 +129,6 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     print('dfkjasdlkjsdf');
     getChatData();
-
   }
 
   @override
@@ -290,8 +309,5 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
-
-
-
   }
 }

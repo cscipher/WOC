@@ -35,103 +35,77 @@ class _ChatListState extends State<ChatList> {
     return !check;
   }
 
-
   getAllChats() async {
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
-    var name='',photo='',status='';
+    var name = '', photo = '', status = '';
 
     ref.doc(uid).snapshots().listen((snapshot) async {
-      List r_uids = snapshot.data()['chatUsers'];
-      print('users:::$r_uids');
-      // print('contacts::${contacts[0]['id']}');
-      for (var id in r_uids) {
-        await fetchAllContacts(id);
+      if (snapshot.data() != null) {
+        List r_uids = snapshot.data()['chatUsers'];
+        print('users:::$r_uids');
+        // print('contacts::${contacts[0]['id']}');
+        for (var id in r_uids) {
+          await fetchAllContacts(id);
 
-        name = contacts.first[DatabaseHelper.colName];
-        status = contacts.first[DatabaseHelper.colStatus];
-        photo = contacts.first[DatabaseHelper.colPic];
+          name = contacts.first[DatabaseHelper.colName];
+          status = contacts.first[DatabaseHelper.colStatus];
+          photo = contacts.first[DatabaseHelper.colPic];
 
-        ChatContactModel model = ChatContactModel(
-          name: name,
-          uid: id,
-          status: status,
-          photoUrl: photo,);
-        print('model::$model');
-        setState(() {
-          chatUsersList.add(model);
-        });
-        // ref.doc(id).get().then((event) {
-        //   print(event.data());
-        //   name = event.data()['name'];
-        //   status = event.data()['status'];
-        //   photo = event.data()['photourl'];
-        //   ChatContactModel model = ChatContactModel(
-        //       name: name,
-        //       uid: id,
-        //       status: status,
-        //       photoUrl: photo,);
-        //   print('model::$model');
-        //   setState(() {
-        //     chatUsersList.add(model);
-        //   });
-        // });
+          ChatContactModel model = ChatContactModel(
+            name: name,
+            uid: id,
+            status: status,
+            photoUrl: photo,
+          );
+          print('model::$model');
+          setState(() {
+            chatUsersList.add(model);
+          });
+        }
       }
     });
   }
 
-
   fetchAllContacts(String id) async {
-    List _contacts = await DatabaseHelper.db.query('SELECT * FROM ${DatabaseHelper.tablename} WHERE id=?', [id]);
+    List _contacts = await DatabaseHelper.db
+        .query('SELECT * FROM ${DatabaseHelper.tablename} WHERE id=?', [id]);
     setState(() {
       contacts = _contacts;
       // print(_contacts[1]['id']);
     });
   }
 
-
-  Future tempchat() async {
-    CollectionReference ref = FirebaseFirestore.instance.collection('users');
-    CollectionReference ref2 = FirebaseFirestore.instance.collection('chats');
-    ref2.snapshots().listen((event) {
-      event.docs.map((e) async {
-        var doc = e.data();
-        var name, photo, recentMessage, time;
-        setState(() {
-          recentMessage = doc['AllChats'].last['message'];
-          time = doc['AllChats'].last['timeStamp'].toDate();
-          time = DateFormat.Hm().format(time).toString();
+  deleteAlert(BuildContext ctx, String id) {
+    return showDialog(
+        context: ctx,
+        builder: (ctx) {
+          return AlertDialog(
+            title: Text('Delete Alert'),
+            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+            content: Text(
+                'Do you want to delete this entire chat with this person?'),
+            actions: [
+              FlatButton(
+                  onPressed: () {
+                    setState(() {
+                      chatUsersList = chatUsersList.where((element) {
+                        return element.uid != id;
+                      }).toList();
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(color: neutralRed),
+                  )),
+              FlatButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                  },
+                  child: Text('Dismiss'))
+            ],
+          );
         });
-        if (doc['AllChats'][0]['recieverId'] == uid) {
-          await ref
-              .doc(doc['AllChats'][0]['senderId'])
-              .get()
-              .then((value) => setState(() {
-                    name = value.data()['name'];
-                    photo = value.data()['photourl'];
-                  }));
-          setState(() {
-            print('message....$recentMessage');
-            print('Time....$time');
-            addcontact(doc['AllChats'][0]['senderId'])
-                ? chatUsersList.add(ChatContactModel(
-                    name: name,
-                    uid: doc['AllChats'][0]['senderId'],
-                    recentMsg: recentMessage,
-                    photoUrl: photo,
-                    timestamp: time))
-                : null;
-            print(chatUsersList);
-            // ref.doc(uid).get().then((value) {
-            //   var updateValue = value.data();
-            //   updateValue['chatUsers'].add(doc['AllChats'][0]['senderId']);
-            //   ref.doc(uid).update(updateValue);
-            // });
-          });
-        } else {
-          print('nothing....${doc['AllChats'][0]['recieverId']}::::$uid');
-        }
-      }).toList();
-    });
   }
 
   @override
@@ -158,31 +132,33 @@ class _ChatListState extends State<ChatList> {
                   ))),
                   margin: EdgeInsets.symmetric(horizontal: 15),
                   child: ListTile(
+                    onLongPress: () {
+                      // deleteAlert(ctx, user.uid);
+                    },
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (ctx) => ChatPage(user.uid,
-                                user.name))),
+                            builder: (ctx) => ChatPage(user.uid, user.name))),
                     leading: GestureDetector(
-                      onTap: (){
+                      onTap: () {
                         // Navigator.of(context).push(HeroDialogRoute)
                         createPopup(context, user.photoUrl, user.status);
                       },
                       child: CircleAvatar(
-                        child: Container(
-                          child: user.photoUrl == '' || user.photoUrl == null ? Container(
-                            // color: primaryColor.withAlpha(90),
-                            child: SpinKitPulse(
-                              color: Colors.white,
-                              size: 30.0,
-                            ),
-                          ) : null,
-                        ),
+                          child: Container(
+                            child: user.photoUrl == '' || user.photoUrl == null
+                                ? Container(
+                                    // color: primaryColor.withAlpha(90),
+                                    child: SpinKitPulse(
+                                      color: Colors.white,
+                                      size: 30.0,
+                                    ),
+                                  )
+                                : null,
+                          ),
                           backgroundColor: accent2,
                           radius: 30,
-                          backgroundImage:
-                              NetworkImage(user.photoUrl)
-                      ),
+                          backgroundImage: NetworkImage(user.photoUrl)),
                     ),
                     title: Text(user.name,
                         style: TextStyle(
@@ -212,46 +188,17 @@ class _ChatListState extends State<ChatList> {
                   SizedBox(
                     width: 10,
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle, color: primaryColor),
-                    child: IconButton(
-                        icon: Icon(Icons.add),
-                        color: Colors.white,
-                        onPressed: tempchat),
-                  )
+                  // Container(
+                  //   decoration: BoxDecoration(
+                  //       shape: BoxShape.circle, color: primaryColor),
+                  //   child: IconButton(
+                  //       icon: Icon(Icons.add),
+                  //       color: Colors.white,
+                  //       onPressed: tempchat),
+                  // )
                 ],
               ),
             ),
           );
   }
 }
-
-// ref2.snapshots().listen((event) {
-//   var data = event.docs;
-//   print('mydataa:::$data');
-//   data.map((chatCollection) {
-//     var idsort = [uid, id];
-//     idsort.sort();
-//     var idsortstring = '${idsort[0]}${idsort[1]}';
-//     print('sortid:::$idsortstring');
-//     print('cid::::${chatCollection.id}');
-//
-//     if(chatCollection.id == idsortstring){
-//       recentMessage = chatCollection.data()['AllChats'].last['message'];
-//       time = chatCollection.data()['AllChats'].last['timeStamp'].toDate();
-//       time = DateFormat.Hm().format(time).toString();
-//       ChatContactModel model = ChatContactModel(
-//           name: name,
-//           uid: idsortstring,
-//           recentMsg: recentMessage,
-//           photoUrl: photo,
-//           timestamp: time);
-//       print('model::$model');
-//       setState(() {
-//               chatUsersList.add(model);
-//             });
-//     }
-//     // print('id::${chatCollection.id}');
-//   }).toList();
-// });

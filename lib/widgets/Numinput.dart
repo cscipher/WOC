@@ -75,6 +75,7 @@ class _NumberInputState extends State<NumberInput> {
                         ),
                         onPressed: () {
                           setState(() {
+                            print(number.phoneNumber);
                             otpScreen = true;
                           });
                         },
