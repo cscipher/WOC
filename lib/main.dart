@@ -1,6 +1,8 @@
 import 'package:WOC/screens/profileSet.dart';
 import 'package:WOC/screens/reg_screen.dart';
+import 'package:WOC/screens/videoCallScreen.dart';
 import 'package:WOC/widgets/otpinput.dart';
+import 'package:WOC/widgets/randomVIdeoCall.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -41,18 +43,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'Material App',
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return SplashScreen(true);
-            } else {
-              return SplashScreen(false);
-            }
-          },
-        ),
+        // home: StreamBuilder(
+        //   stream: FirebaseAuth.instance.authStateChanges(),
+        //   builder: (context, snapshot) {
+        //     if (snapshot.hasData) {
+        //       return SplashScreen(true);
+        //     } else {
+        //       return SplashScreen(false);
+        //     }
+        //   },
+        // ),
 
-        // home: NewProfile('1234554321'),
+        home: GetUserMediaSample(),
         theme: ThemeData(
           fontFamily: 'Roboto',
           appBarTheme: AppBarTheme(

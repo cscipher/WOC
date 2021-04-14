@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 //primary
-final Color primaryColor = Color(0xFF27DF99);
+final Color primaryColor = Color(0xFF64E9EE);
 
 //accent
-final Color accent1 = Color(0xFF001038);
-final Color accent2 = Color(0xFF868A9A);
+// final Color accent1 = Color(0xFF001011);
+final Color accent1 = Colors.black;
+final Color accent2 = Color(0xFF093A3E);
 final Color accent3 = Color(0xFFF9F9FF);
 final Color accent4 = Color(0xFFE4FFEF);
 

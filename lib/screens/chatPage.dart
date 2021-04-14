@@ -206,7 +206,7 @@ class _ChatPageState extends State<ChatPage> {
                             color: chatData[index]['senderId'] ==
                                     uid // this sender denotes to the current Logged in user
                                 ? primaryColor
-                                : accent4,
+                                : primaryColor.withAlpha(50),
                           ),
                           padding: EdgeInsets.all(16),
                           child: Text(
@@ -216,7 +216,7 @@ class _ChatPageState extends State<ChatPage> {
                                 color: chatData[index]['senderId'] ==
                                         uid // this sender denotes to the current Logged in user
                                     ? Colors.white
-                                    : Colors.black,
+                                    : accent1,
                                 fontSize: 16,
                                 fontWeight: FontWeight.normal),
                           ),
@@ -269,7 +269,7 @@ class _ChatPageState extends State<ChatPage> {
                             controller: _msgControl,
                             decoration: InputDecoration(
                                 hintText: "Enter your message",
-                                hintStyle: TextStyle(color: Colors.black54),
+                                hintStyle: TextStyle(color: Colors.black),
                                 border: InputBorder.none),
                           ),
                         ),

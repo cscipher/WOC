@@ -35,6 +35,11 @@ dependencies:
   cloud_firestore: ^0.14.0+2
   firebase_storage: ^4.0.0
   firebase_core: ^0.5.0
+  
+  #flutter webrtc
+  flutter_webrtc: ^0.5.8
+  sdp_transform: ^0.2.0
+  socket_io_client: ^0.9.12
 
 
   responsive_builder: ^0.3.0

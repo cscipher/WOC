@@ -21,6 +21,7 @@ class _ChatListState extends State<ChatList> {
   final String uid = FirebaseAuth.instance.currentUser.uid;
   List<ChatContactModel> chatUsersList = [];
   List contacts = [];
+  var msg = '', time;
 
   bool addcontact(String id) {
     bool check = false;
@@ -46,17 +47,18 @@ class _ChatListState extends State<ChatList> {
         // print('contacts::${contacts[0]['id']}');
         for (var id in r_uids) {
           await fetchAllContacts(id);
-
+          // await getRecentMsg(id);
+          print('contacts::$contacts');
           name = contacts.first[DatabaseHelper.colName];
           status = contacts.first[DatabaseHelper.colStatus];
           photo = contacts.first[DatabaseHelper.colPic];
-
           ChatContactModel model = ChatContactModel(
-            name: name,
-            uid: id,
-            status: status,
-            photoUrl: photo,
-          );
+              name: name,
+              uid: id,
+              status: status,
+              photoUrl: photo,
+              recentMsg: msg,
+              timestamp: time);
           print('model::$model');
           setState(() {
             chatUsersList.add(model);
@@ -69,9 +71,27 @@ class _ChatListState extends State<ChatList> {
   fetchAllContacts(String id) async {
     List _contacts = await DatabaseHelper.db
         .query('SELECT * FROM ${DatabaseHelper.tablename} WHERE id=?', [id]);
+    var q = await DatabaseHelper.db.queryAll();
+    for (var i in q) {
+      print(i);
+    }
     setState(() {
+      print(_contacts);
       contacts = _contacts;
-      // print(_contacts[1]['id']);
+    });
+  }
+
+  getRecentMsg(String id) async {
+    CollectionReference ref = FirebaseFirestore.instance.collection('chats');
+    List<String> finalId = [id, uid];
+    finalId.sort();
+    String finalSid = finalId[0] + finalId[1];
+
+    ref.doc(finalSid).snapshots().listen((event) {
+      var data = event.data()['AllChats'];
+      msg = data.last['message'];
+      time = data.last['timeStamp'].toDate();
+      time = DateFormat.Hm().format(time);
     });
   }
 
