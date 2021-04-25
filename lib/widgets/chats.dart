@@ -3,6 +3,7 @@ import 'package:WOC/models/chatContactModel.dart';
 import 'package:WOC/screens/chatPage.dart';
 import 'package:WOC/screens/contactsList.dart';
 import 'package:WOC/widgets/popupWidget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,7 +41,7 @@ class _ChatListState extends State<ChatList> {
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
     var name = '', photo = '', status = '';
 
-    ref.doc(uid).snapshots().listen((snapshot) async {
+    ref.doc(uid).get().then((snapshot) async {
       if (snapshot.data() != null) {
         List r_uids = snapshot.data()['chatUsers'];
         print('users:::$r_uids');
@@ -62,8 +63,11 @@ class _ChatListState extends State<ChatList> {
           print('model::$model');
           setState(() {
             chatUsersList.add(model);
+            print(chatUsersList);
           });
         }
+      } else {
+        print('nothing from snap!');
       }
     });
   }
@@ -148,37 +152,24 @@ class _ChatListState extends State<ChatList> {
                   decoration: BoxDecoration(
                       border: Border(
                           bottom: BorderSide(
-                    color: accent2.withAlpha(80),
+                    color: accent2.withOpacity(0.1),
                   ))),
                   margin: EdgeInsets.symmetric(horizontal: 15),
                   child: ListTile(
-                    onLongPress: () {
-                      // deleteAlert(ctx, user.uid);
-                    },
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (ctx) => ChatPage(user.uid, user.name))),
                     leading: GestureDetector(
                       onTap: () {
-                        // Navigator.of(context).push(HeroDialogRoute)
                         createPopup(context, user.photoUrl, user.status);
                       },
                       child: CircleAvatar(
-                          child: Container(
-                            child: user.photoUrl == '' || user.photoUrl == null
-                                ? Container(
-                                    // color: primaryColor.withAlpha(90),
-                                    child: SpinKitPulse(
-                                      color: Colors.white,
-                                      size: 30.0,
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          backgroundColor: accent2,
-                          radius: 30,
-                          backgroundImage: NetworkImage(user.photoUrl)),
+                        backgroundColor: accent2,
+                        radius: 30,
+                        backgroundImage:
+                            CachedNetworkImageProvider(user.photoUrl),
+                      ),
                     ),
                     title: Text(user.name,
                         style: TextStyle(
@@ -197,26 +188,12 @@ class _ChatListState extends State<ChatList> {
             ),
           )
         : Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.1),
             child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Make your first message..',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //       shape: BoxShape.circle, color: primaryColor),
-                  //   child: IconButton(
-                  //       icon: Icon(Icons.add),
-                  //       color: Colors.white,
-                  //       onPressed: tempchat),
-                  // )
-                ],
+              child: Text(
+                'Huh! Nothing here! Start Chatting by making new message! 💬',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
             ),
           );

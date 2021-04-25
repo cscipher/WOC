@@ -1,4 +1,7 @@
+import 'package:WOC/screens/addStoryPreview.dart';
 import 'package:WOC/screens/profileSet.dart';
+import 'package:WOC/screens/randomChat.dart';
+import 'package:WOC/screens/randomVideoCallScreen.dart';
 import 'package:WOC/screens/reg_screen.dart';
 import 'package:WOC/screens/videoCallScreen.dart';
 import 'package:WOC/widgets/otpinput.dart';
@@ -43,18 +46,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'Material App',
-        // home: StreamBuilder(
-        //   stream: FirebaseAuth.instance.authStateChanges(),
-        //   builder: (context, snapshot) {
-        //     if (snapshot.hasData) {
-        //       return SplashScreen(true);
-        //     } else {
-        //       return SplashScreen(false);
-        //     }
-        //   },
-        // ),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return SplashScreen(true);
+            } else {
+              return SplashScreen(false);
+            }
+          },
+        ),
 
-        home: GetUserMediaSample(),
+        // home: RandomChat('abc','xyz'),
         theme: ThemeData(
           fontFamily: 'Roboto',
           appBarTheme: AppBarTheme(

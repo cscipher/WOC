@@ -14,13 +14,14 @@
 
 
     <application
+        android:usesCleartextTraffic="true"
         android:name="io.flutter.app.FlutterApplication"
         android:label="WOC"
         android:icon="@mipmap/ic_launcher">
         
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="portrait"    
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
         <activity

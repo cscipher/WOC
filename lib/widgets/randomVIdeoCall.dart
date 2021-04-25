@@ -1,13 +1,20 @@
 import 'dart:convert';
 import 'dart:core';
+import 'dart:math' as math;
 import 'dart:io';
+import 'package:WOC/models/chatsModel.dart';
+import 'package:WOC/screens/randomChat.dart';
 import 'package:WOC/screens/videoCallScreen.dart';
 import 'package:WOC/themes/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:sdp_transform/sdp_transform.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
+// String ip = 'http://192.168.43.79:8080';
+String ip = 'http://13.127.251.39:8080';
 
 /*
  * webrtc video
@@ -20,14 +27,24 @@ class GetUserMediaSample extends StatefulWidget {
 }
 
 class _GetUserMediaSampleState extends State<GetUserMediaSample> {
+  List chatData = [];
+  //check peer connection
+  bool isConn = false;
+
   //**SOCKETS VAR
   var iamInitiator = false;
   IO.Socket socket;
+
   //room name
   var roomName = 'n/a';
+
   //my id
-  var myId = 'n/a';
+  String myId;
   var answerSDP = 'n/a';
+
+  //receiver uid
+  var rId = '';
+
   //**SOCKETS VAR
 
   //initialize
@@ -42,25 +59,43 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   bool _inCalling = false;
   bool _isTorchOn = false;
   MediaRecorder _mediaRecorder;
+  int count = 0;
+
   bool get _isRec => _mediaRecorder != null;
 
   List<MediaDeviceInfo> _mediaDevicesList;
 
-  @override
-  void initState() {
-    super.initState();
-    initRenderers();
-  }
+  Color k1 = Colors.white;
+  Color k11 = primaryColor;
+  Color k2 = Colors.white;
+  Color k22 = primaryColor;
+  Color k3 = Colors.white;
+  Color k33 = primaryColor;
+  Color k4 = Colors.white;
+  Color k44 = primaryColor;
+  bool connected = false;
+  bool imHere;
 
   @override
-  void deactivate() {
-    super.deactivate();
-    if (_inCalling) {
-      _hangUp();
-    }
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
+  void initState() {
+    myId = '';
+    setState(() {
+      imHere = true;
+    });
+    super.initState();
+    initRenderers();
+    _makeCall();
   }
+
+  // @override
+  // void deactivate() {
+  //   super.deactivate();
+  //   if (_inCalling) {
+  //     _hangUp();
+  //   }
+  //   _localRenderer.dispose();
+  //   _remoteRenderer.dispose();
+  // }
 
   void initRenderers() async {
     await _localRenderer.initialize();
@@ -69,12 +104,14 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   void _makeCall() async {
+    // var h = MediaQuery.of(context).size.height;
+    // var w = MediaQuery.of(context).size.width;
     final Map<String, dynamic> mediaConstraints = {
       'audio': true,
       'video': {
         'mandatory': {
-          'minWidth':
-              '640', // Provide your own width, height and frame rate here
+          'minWidth': '640',
+          // Provide your own width, height and frame rate here
           'minHeight': '480',
           'minFrameRate': '30',
         },
@@ -84,13 +121,17 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     try {
-      var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
-      _localStream = stream;
-      _localRenderer.srcObject = _localStream;
+      if (_localStream == null) {
+        var stream =
+            await navigator.mediaDevices.getUserMedia(mediaConstraints);
+        _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
+        _localStream = stream;
+        _localRenderer.srcObject = _localStream;
+      }
     } catch (e) {
       print(e.toString());
     }
+    // _remoteRenderer.initialize();
     if (!mounted) return;
 
     setState(() {
@@ -112,36 +153,86 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     iniForRecall();
 
     try {
-      await _localStream?.dispose();
-      _localRenderer.srcObject = null;
+      // await _localStream?.dispose();
       setState(() {
+        // _localRenderer.srcObject = null;
         _inCalling = false;
+        isConn = false;
       });
     } catch (e) {
       print(e.toString());
     }
   }
 
+  Widget loaderContainer() {
+    return Container(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Waiting for someone to connect...',
+            style: TextStyle(fontSize: 17),
+          ),
+          SizedBox(width: 10),
+          SpinKitRing(color: primaryColor, size: 30),
+        ],
+      ),
+    );
+  }
+
+  disposeRenderers() {
+    // await _localStream?.dispose();
+    _localStream.dispose();
+    _localRenderer.dispose();
+    _remoteRenderer.dispose();
+
+    if (socket != null) {
+      socket.disconnect();
+      socket.clearListeners();
+      socket.close();
+    }
+    if (_peerConnection != null) {
+      // _peerConnection.removeStream(_localStream);
+      // _localStream.getTracks().forEach((element) => element.stop());
+      _peerConnection.close().then((value) => Navigator.pop(context));
+    }
+  }
+
+  onChatScreen() {
+    // sendChatData('dfhslfjsdhlfalfj!!!!!!');
+    setState(() {
+      imHere = false;
+    });
+    print('sendingdata:::$myId,:::$roomName,:::$chatData');
+    setState(() {
+      count = 0;
+    });
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (ctx) => RandomChat(
+                myId: myId,
+                socket: socket,
+                roomName: roomName,
+                chatData: chatData)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    // return VideoCallScreen(_localRenderer, _remoteRenderer);
-    Color k1 = Colors.white;
-    Color k11 = primaryColor;
-    Color k2 = Colors.white;
-    Color k22 = primaryColor;
     return Scaffold(
       body: Column(
-        // mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
               child: Stack(
             children: [
               Container(
                 // color: neutralRed,
-                child: RTCVideoView(
-                  _remoteRenderer,
-                ),
+                child: _remoteRenderer.srcObject != null
+                    ? RTCVideoView(
+                        _remoteRenderer,
+                      )
+                    : loaderContainer(),
               ),
               Container(
                 margin: EdgeInsets.only(left: 10, top: 20),
@@ -153,71 +244,44 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                     mirror: true,
                   ),
                 ),
-                width: 120,
-                height: 214,
+                width: MediaQuery.of(context).size.width * 0.28,
+                height: MediaQuery.of(context).size.height * 0.165,
               )
             ],
           )),
           Stack(children: [
             Container(
-              child: Card(
-                // child: Text('fsdfosd'),
-                elevation: 0,
-              ),
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.15,
-              decoration: BoxDecoration(boxShadow: [shadow]),
+              decoration: BoxDecoration(boxShadow: [shadow], color: accent3),
             ),
             Column(
               children: [
-                SizedBox(
-                  height: 30,
-                ),
                 Container(
+                  margin: EdgeInsets.symmetric(vertical: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    // crossAxisAlignment: CrossAxisAlignment.,
                     children: [
                       RaisedButton(
                         padding: EdgeInsets.all(20),
                         // splashColor: Colors.white,
-                        textColor: k11,
+                        textColor: k44,
                         shape: CircleBorder(
                             side: BorderSide(color: Colors.white, width: 0)),
                         // iconSize: 40,
                         elevation: 4,
-                        child: Icon(
-                          Icons.switch_camera_outlined,
-                          size: 30,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.rotationY(math.pi),
+                          child: Icon(
+                            Icons.exit_to_app,
+                            size: 30,
+                          ),
                         ),
-                        color: k1,
-                        onPressed: () {
-                          setState(() {
-                            k1 == primaryColor
-                                ? k1 = Colors.white
-                                : k1 = primaryColor;
-                            k11 == primaryColor
-                                ? k11 = Colors.white
-                                : k11 = primaryColor;
-                          });
-                        },
+
+                        color: k4,
+                        onPressed: disposeRenderers,
                       ),
-                      SizedBox(width: 20),
-                      RaisedButton(
-                        padding: EdgeInsets.all(20),
-                        textColor: Colors.white,
-                        shape: CircleBorder(
-                            side: BorderSide(color: neutralRed, width: 0)),
-                        // iconSize: 40,
-                        elevation: 4,
-                        child: Icon(
-                          Icons.call_end,
-                          size: 30,
-                        ),
-                        color: neutralRed,
-                        onPressed: () {},
-                      ),
-                      SizedBox(width: 20),
                       RaisedButton(
                         padding: EdgeInsets.all(20),
                         textColor: k22,
@@ -231,7 +295,11 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                         ),
                         color: k2,
                         onPressed: () {
+                          // mute logic here...
                           setState(() {
+                            _localRenderer != null
+                                ? _localRenderer.muted = !_localRenderer.muted
+                                : null;
                             k2 == primaryColor
                                 ? k2 = Colors.white
                                 : k2 = primaryColor;
@@ -239,6 +307,73 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                                 ? k22 = Colors.white
                                 : k22 = primaryColor;
                           });
+                        },
+                      ),
+                      // SizedBox(width: 20),
+                      Stack(
+                        children: <Widget>[
+                          RaisedButton(
+                            padding: EdgeInsets.all(20),
+                            textColor: k11,
+                            shape: CircleBorder(
+                                side:
+                                    BorderSide(color: Colors.white, width: 0)),
+                            // iconSize: 40,
+                            elevation: 4,
+                            child: Icon(
+                              Icons.chat_bubble_outlined,
+                              size: 30,
+                            ),
+                            color: k1,
+                            onPressed: _remoteRenderer.srcObject != null
+                                ? onChatScreen
+                                : null,
+                          ),
+                          count > 0
+                              ? Positioned(
+                                  right: 11,
+                                  // top: 4,
+                                  child: new Container(
+                                    padding: EdgeInsets.all(2),
+                                    decoration: new BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.circular(36),
+                                    ),
+                                    constraints: BoxConstraints(
+                                      minWidth: 25,
+                                      minHeight: 25,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        (count).toString(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : new Container()
+                        ],
+                      ),
+
+                      RaisedButton(
+                        padding: EdgeInsets.all(20),
+                        textColor: k33,
+                        shape: CircleBorder(
+                            side: BorderSide(color: Colors.white, width: 0)),
+                        // iconSize: 40,
+                        elevation: 4,
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 30,
+                        ),
+                        color: k3,
+                        onPressed: () {
+                          _hangUp();
+                          _makeCall();
                         },
                       ),
                     ],
@@ -250,32 +385,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           ]),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _inCalling ? _hangUp : _makeCall,
-        tooltip: _inCalling ? 'Hangup' : 'Call',
-        child: Icon(_inCalling ? Icons.call_end : Icons.phone),
-      ),
     );
-
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: Text('Video Calling'),
-    //     actions: _inCalling ? <Widget>[] : nuemll,
-    //   ),
-
-    //   body: Container(
-    //       child: Column(children: [
-    //     // videoRenderers(),
-    //     videoRender()
-    //   ])),
-
-    //   //Make call and hang btn
-    //   floatingActionButton: FloatingActionButton(
-    //     onPressed: _inCalling ? _hangUp : _makeCall,
-    //     tooltip: _inCalling ? 'Hangup' : 'Call',
-    //     child: Icon(_inCalling ? Icons.call_end : Icons.phone),
-    //   ),
-    // );
   }
 
   //**Webrtc
@@ -293,6 +403,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     //**SOCKET
     //send offer
     sendOfferSOCKET(dataOffer);
+    // sendChatData('ddasdasda!!');
   }
 
   //here we create answer
@@ -370,11 +481,11 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         {"url": "stun:stun.l.google.com:19302"},
 
         // turn server configuration example.
-        {
-          'url': 'turn:123.45.67.89:3478',
-          'username': 'change_to_real_user',
-          'credential': 'change_to_real_secret'
-        },
+        // {
+        //   'url': 'turn:123.45.67.89:3478',
+        //   'username': 'change_to_real_user',
+        //   'credential': 'change_to_real_secret'
+        // },
       ]
     };
 
@@ -410,47 +521,56 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
 
     pc.onIceConnectionState = (e) {
-      print(e);
+      print('conn state:::$e');
       //**Both peers connected
-      print('RTC connected');
+      // print('RTC connected');
       //now reload widgets
-      setState(() {});
+      setState(() {
+        isConn = true;
+      });
     };
 
     pc.onAddStream = (stream) {
       print('addStream: ' + stream.id);
+      rId = stream.id;
       _remoteRenderer.srcObject = stream;
+    };
+
+    pc.onConnectionState = (getConnState) {
+      //on disconnect
+      if (RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ==
+          getConnState) {
+        //chat is ended
+        //remove remote peer video
+        setState(() {
+          _remoteRenderer.srcObject = null;
+          // _remoteRenderer.dispose();
+        });
+        // _hangUp();
+        // _makeCall();
+      }
     };
 
     return pc;
   }
+
   //**Webrtc
 
-  //**Video rendrer
-  SizedBox videoRenderers() => SizedBox(
-      height: 300,
-      child: Row(children: [
-        Flexible(
-          child: new Container(
-              key: new Key("local"),
-              margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-              decoration: new BoxDecoration(color: Colors.black),
-              child: new RTCVideoView(_localRenderer, mirror: true)),
-        ),
-        Flexible(
-          child: new Container(
-              key: new Key("remote"),
-              margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-              decoration: new BoxDecoration(color: Colors.black),
-              child: new RTCVideoView(_remoteRenderer)),
-        )
-      ]));
-  //**Video rendrer
+  // void sendChatData(chatData) {
+  //   print('::::::::::::::;;inititate:::::::::::');
+  //   var mPayload = {
+  //     // 'senderId': myId,
+  //     'message': chatData,
+  //     'id': myId,
+  //     // 'receiverId':rId
+  //   };
+  //   socket.emit('chat', {'setRoomName': roomName, 'payload': mPayload});
+  // }
 
   //**Sockets
   void mSocket() {
     //http://192.168.1.13:3000
-    socket = IO.io('http://192.168.1.13:3000', <String, dynamic>{
+    socket = IO.io(ip, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -459,20 +579,44 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     //**events
     //on connect
     socket.onConnect((_) {
-      myId = socket.id;
+      if (this.mounted)
+        setState(() {
+          myId = socket.id;
+        });
       print('connect: ' + myId);
     });
     //on disconnect
     socket.onDisconnect((data) {
+      if (this.mounted)
+        setState(() {
+          _remoteRenderer.srcObject = null;
+          chatData.clear();
+          myId = '';
+        });
       print('disconnected..');
     });
 
     //receive room name
     socket.on('roomName', (data) {
-      roomName = data;
+      if (this.mounted)
+        setState(() {
+          roomName = data;
+        });
       print('room_name: ' + data);
     });
 
+    // ChatData getting from server
+    socket.on('chat', (data) {
+      var mEncodeJson = jsonEncode(data);
+      var getMsg = jsonDecode(mEncodeJson);
+      print('MESSAAA:::$getMsg');
+      if (this.mounted)
+        setState(() {
+          chatData.add(getMsg);
+          count++;
+        });
+      print('CHAT:::$chatData');
+    });
     //receive msg
     socket.on('msg', (data) {
       var mEncodeJson = jsonEncode(data);
@@ -540,28 +684,34 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     };
     socket.emit('msg', {'setRoomName': roomName, 'payload': mPayload});
   }
+
   //**Sockets
 
   //init for recall
   void iniForRecall() {
     //on hang up close peer conn
     _peerConnection.close();
+    // setState(() {
+    //   _remoteRenderer.srcObject = null;
+    // });
     //dispose
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
+    // _localRenderer.dispose();
+    // _remoteRenderer.dispose();
+
     //close socket
+    socket.disconnect();
     socket.clearListeners();
     socket.close();
 
     //**Initialize all variables
     //init rendrers
-    initRenderers();
+    // initRenderers();
+    _remoteRenderer.initialize();
     //**SOCKETS VAR
     iamInitiator = false;
     //room name
     roomName = 'n/a';
     //my id
-    myId = 'n/a';
     answerSDP = 'n/a';
     //**SOCKETS VAR
 

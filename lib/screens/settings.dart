@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:WOC/themes/colors.dart';
+import 'package:WOC/widgets/popupWidget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -83,8 +85,9 @@ class _SettingsState extends State<Settings> {
 
   Future _updateProfile() async {
     if (_image != null) {
+      String ext = _image.path.toString().split('.').last;
       final StorageReference fbStorage =
-          FirebaseStorage.instance.ref().child('users/$uid.jpg');
+          FirebaseStorage.instance.ref().child('users/$uid.$ext');
       final StorageUploadTask task = fbStorage.putFile(_image);
       await task.onComplete;
       print('upload complete');
@@ -147,11 +150,14 @@ class _SettingsState extends State<Settings> {
                     Stack(
                       children: [
                         Center(
-                          child: CircleAvatar(
-                            backgroundImage: _image == null
-                                ? NetworkImage(picUrl)
-                                : FileImage(_image),
-                            radius: MediaQuery.of(context).size.width * 0.25,
+                          child: GestureDetector(
+                            onTap: () => createPopup(context, picUrl, ''),
+                            child: CircleAvatar(
+                              backgroundImage: _image == null
+                                  ? CachedNetworkImageProvider(picUrl)
+                                  : FileImage(_image),
+                              radius: MediaQuery.of(context).size.width * 0.25,
+                            ),
                           ),
                         ),
                         Container(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:WOC/screens/addStoryPreview.dart';
 import 'package:WOC/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -11,7 +12,7 @@ class NewStory extends StatefulWidget {
 }
 
 class _NewStoryState extends State<NewStory> {
-  File _image;
+  // File _image;
 
   Future _imgFromGallery() async {
     File image = await ImagePicker.pickImage(
@@ -28,42 +29,30 @@ class _NewStoryState extends State<NewStory> {
         aspectRatioPresets: Platform.isAndroid
             ? [
                 CropAspectRatioPreset.square,
-                CropAspectRatioPreset.ratio3x2,
-                CropAspectRatioPreset.original,
-                CropAspectRatioPreset.ratio4x3,
-                CropAspectRatioPreset.ratio16x9
               ]
             : [
-                CropAspectRatioPreset.original,
                 CropAspectRatioPreset.square,
-                CropAspectRatioPreset.ratio3x2,
-                CropAspectRatioPreset.ratio4x3,
-                CropAspectRatioPreset.ratio5x3,
-                CropAspectRatioPreset.ratio5x4,
-                CropAspectRatioPreset.ratio7x5,
-                CropAspectRatioPreset.ratio16x9
               ],
         androidUiSettings: AndroidUiSettings(
             // toolbarTitle: 'Cropper',
             toolbarColor: primaryColor,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
+            // toolbarWidgetColor: Colors.white,
+            // initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false),
         iosUiSettings: IOSUiSettings(
             // title: 'Cropper',
             ));
     if (croppedFile != null) {
       picked = croppedFile;
-      setState(() {
-        _image = picked;
-      });
+      // setState(() {
+      //   _image = picked;
+      // });
+      Navigator.push(context,
+          MaterialPageRoute(builder: (ctx) => AddStoryPreview(picked)));
     }
   }
 
-
-  _addStory() {
-    
-  }
+  _addStory() {}
 
   @override
   Widget build(BuildContext context) {
@@ -72,12 +61,14 @@ class _NewStoryState extends State<NewStory> {
         InkWell(
           borderRadius: BorderRadius.circular(50),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.height * 0.015,
+                vertical: 8),
             child: GestureDetector(
-              onTap: () => _imgFromGallery,
+              onTap: () => _imgFromGallery(),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.14,
-                height: MediaQuery.of(context).size.height * 0.07,
+                width: MediaQuery.of(context).size.width * 0.15,
+                height: MediaQuery.of(context).size.width * 0.15,
                 decoration: BoxDecoration(
                     color: primaryColor,
                     borderRadius: BorderRadius.circular(50),

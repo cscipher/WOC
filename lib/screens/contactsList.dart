@@ -3,6 +3,7 @@ import 'package:WOC/screens/chatPage.dart';
 import 'package:WOC/screens/home_screen.dart';
 import 'package:WOC/themes/colors.dart';
 import 'package:WOC/widgets/popupWidget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
@@ -273,8 +274,7 @@ class _ContactsListState extends State<ContactsList> {
                                   ),
                                   backgroundColor: accent2,
                                   radius: 30,
-                                  backgroundImage:
-                                      NetworkImage(user.prefix ?? '')),
+                                  backgroundImage:CachedNetworkImageProvider(user.prefix)),
                             ),
                             onTap: () => Navigator.push(
                                 context,

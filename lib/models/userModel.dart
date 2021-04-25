@@ -6,10 +6,12 @@ class User {
   final String id;
   final String profileImageUrl;
   final List<String> chatUsers;
+  final List<Map<String, String>> storiesUrls;
 
   User(
       {@required this.name,
       this.phoneNum,
+      this.storiesUrls,
       this.id,
       @required this.profileImageUrl,
       this.chatUsers});

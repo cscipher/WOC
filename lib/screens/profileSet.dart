@@ -122,8 +122,9 @@ class _NewProfileState extends State<NewProfile> {
         'chatUsers': chatUsers
       };
       if (_image != null) {
+        String ext = _image.path.toString().split('.').last;
         final StorageReference fbStorage =
-            FirebaseStorage.instance.ref().child('users/$uid.jpg');
+            FirebaseStorage.instance.ref().child('users/$uid.$ext');
         final StorageUploadTask task = fbStorage.putFile(_image);
         await task.onComplete.then((value) {
           print('upload complete');

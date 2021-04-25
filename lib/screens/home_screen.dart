@@ -1,8 +1,8 @@
 import 'package:WOC/screens/contactsList.dart';
+import 'package:WOC/screens/randomVideoCallScreen.dart';
 import 'package:WOC/screens/reg_screen.dart';
 import 'package:WOC/screens/settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:WOC/data/storyData.dart';
 import 'package:WOC/screens/callLogs.dart';
 import 'package:WOC/screens/homeChatList.dart';
 import 'package:WOC/themes/colors.dart';
@@ -16,7 +16,8 @@ import '../widgets/chats.dart';
 
 class HomeScreen extends StatefulWidget {
   int nav;
-  HomeScreen({this.nav = 0});
+  final String showSnack;
+  HomeScreen({this.nav = 0, this.showSnack = 'ffff'});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -34,10 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget showScreen() {
     if (widget.nav == 0) return HomeChatList();
     if (widget.nav == 1) return ContactsList();
-    if (widget.nav == 2)
-      return Scaffold(
-        body: Text(uid),
-      );
+    if (widget.nav == 2) return RandomVideoCallScreen();
     if (widget.nav == 3) return CallLogs();
     if (widget.nav == 4) return Settings();
   }

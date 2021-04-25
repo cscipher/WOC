@@ -37,9 +37,10 @@ dependencies:
   firebase_core: ^0.5.0
   
   #flutter webrtc
-  flutter_webrtc: ^0.5.8
+  flutter_webrtc: ^0.6.3
   sdp_transform: ^0.2.0
   socket_io_client: ^0.9.12
+  lottie: ^0.7.0+1
 
 
   responsive_builder: ^0.3.0
@@ -76,7 +77,8 @@ dependencies:
   flutter_spinkit: "^4.1.2"
   firebase_messaging: ^6.0.15
   flutter_local_notifications: ^4.0.1+2
-
+  shimmer: ^2.0.0
+  swipedetector: ^1.2.0
 
 
 
@@ -100,8 +102,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+      - assets/images/vc.gif
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

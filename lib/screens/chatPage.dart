@@ -30,7 +30,6 @@ class _ChatPageState extends State<ChatPage> {
       FirebaseFirestore.instance.collection('users');
 
   getChatData() {
-    print('intitate');
     List docSort = [uid, widget.rUid];
     docSort.sort();
     String docid = '${docSort[0]}${docSort[1]}';
@@ -39,10 +38,9 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         print(snapshot.data());
         chatData = snapshot.data()['AllChats'];
-        scrollToBottom();
       });
+      scrollToBottom();
     });
-
     // print(chatData[0]['timeStamp'].);
   }
 
@@ -115,19 +113,21 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   scrollToBottom() {
-    final bottomOffset = _scrollController.position.maxScrollExtent;
-    _scrollController.animateTo(
-      bottomOffset,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // scrollToBottom();
+      final bottomOffset = _scrollController.position.maxScrollExtent;
+      _scrollController.animateTo(
+        bottomOffset,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   @override
   void initState() {
-    _scrollController = ScrollController();
     super.initState();
-    print('dfkjasdlkjsdf');
+    _scrollController = ScrollController();
     getChatData();
   }
 
@@ -154,8 +154,7 @@ class _ChatPageState extends State<ChatPage> {
                 // size: 20,
               ),
               onPressed: () {
-                // Navigator.pop(context);
-                Navigator.push(context,
+                Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => HomeScreen()));
               }),
         ),
@@ -189,14 +188,14 @@ class _ChatPageState extends State<ChatPage> {
                 return Container(
                   margin: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                   // padding: EdgeInsets.all(20),
-
                   // decoration: BoxDecoration(),
                   child: Column(
+                    // mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Align(
                         alignment: chatData[index]['senderId'] == uid
-                            ? Alignment.topRight
-                            : Alignment.topLeft,
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft,
                         child: Container(
                           constraints: BoxConstraints(
                               maxWidth:
@@ -224,8 +223,8 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       Align(
                         alignment: chatData[index]['senderId'] == uid
-                            ? Alignment.topRight
-                            : Alignment.topLeft,
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft,
                         child: Container(
                             margin: EdgeInsets.only(top: 5, left: 5, right: 5),
                             child: Text(
@@ -259,7 +258,7 @@ class _ChatPageState extends State<ChatPage> {
                     child: Row(
                       children: [
                         Container(
-                          width: MediaQuery.of(context).size.width * 0.45,
+                          width: MediaQuery.of(context).size.width * 0.68,
                           child: TextField(
                             onChanged: (c) {
                               setState(() {
@@ -288,20 +287,20 @@ class _ChatPageState extends State<ChatPage> {
                       ],
                     ),
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.07),
-                  Container(
-                    decoration: BoxDecoration(boxShadow: [shadow]),
-                    child: FloatingActionButton(
-                      onPressed: () {},
-                      child: Icon(
-                        FontAwesomeIcons.plus,
-                        color: primaryColor,
-                        size: 25,
-                      ),
-                      backgroundColor: Colors.white,
-                      elevation: 0,
-                    ),
-                  ),
+                  // SizedBox(width: MediaQuery.of(context).size.width * 0.07),
+                  // Container(
+                  //   decoration: BoxDecoration(boxShadow: [shadow]),
+                  //   child: FloatingActionButton(
+                  //     onPressed: () {},
+                  //     child: Icon(
+                  //       FontAwesomeIcons.plus,
+                  //       color: primaryColor,
+                  //       size: 25,
+                  //     ),
+                  //     backgroundColor: Colors.white,
+                  //     elevation: 0,
+                  //   ),
+                  // ),
                 ],
               ),
             ),
