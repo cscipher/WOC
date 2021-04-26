@@ -190,7 +190,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (socket != null) {
       socket.disconnect();
       socket.clearListeners();
-      socket.close();
+      Platform.isIOS ? socket.dispose() : socket.close();
     }
     if (_peerConnection != null) {
       // _peerConnection.removeStream(_localStream);
@@ -701,7 +701,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     //close socket
     socket.disconnect();
     socket.clearListeners();
-    socket.close();
+    Platform.isIOS ? socket.dispose() : socket.close();
 
     //**Initialize all variables
     //init rendrers

@@ -1,5 +1,6 @@
 // import 'package:WOC/data/chatData.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:WOC/themes/colors.dart';
 import 'package:flutter/material.dart';
@@ -218,7 +219,7 @@ class _RandomChatState extends State<RandomChat> {
                       //Skip logic
                       widget.socket.disconnect();
                       widget.socket.clearListeners();
-                      widget.socket.close();
+                      Platform.isIOS ? widget.socket.dispose() : widget.socket.close();
                       sock();
                     }),
               ]
