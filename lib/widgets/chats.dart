@@ -1,5 +1,6 @@
 import 'package:WOC/data/databasehelper.dart';
 import 'package:WOC/models/chatContactModel.dart';
+import 'package:WOC/models/fcm_tokenModel.dart';
 import 'package:WOC/screens/chatPage.dart';
 import 'package:WOC/screens/contactsList.dart';
 import 'package:WOC/widgets/popupWidget.dart';
@@ -7,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +42,15 @@ class _ChatListState extends State<ChatList> {
   getAllChats() async {
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
     var name = '', photo = '', status = '';
+    final FirebaseMessaging _fcm = FirebaseMessaging();
+    String fcmToken = await _fcm.getToken();
+
+    final tokenRef = ref.doc(uid).collection('tokens').doc(fcmToken);
+
+    await tokenRef.set(
+      TokenModel(token: fcmToken, createdAt: FieldValue.serverTimestamp())
+          .toJson(),
+    );
 
     ref.doc(uid).get().then((snapshot) async {
       if (snapshot.data() != null) {
@@ -48,7 +59,7 @@ class _ChatListState extends State<ChatList> {
         // print('contacts::${contacts[0]['id']}');
         for (var id in r_uids) {
           await fetchAllContacts(id);
-          // await getRecentMsg(id);
+          await getRecentMsg(id);
           print('contacts::$contacts');
           name = contacts.first[DatabaseHelper.colName];
           status = contacts.first[DatabaseHelper.colStatus];
@@ -77,7 +88,7 @@ class _ChatListState extends State<ChatList> {
         .query('SELECT * FROM ${DatabaseHelper.tablename} WHERE id=?', [id]);
     var q = await DatabaseHelper.db.queryAll();
     for (var i in q) {
-      print(i);
+      print('q???$i');
     }
     setState(() {
       print(_contacts);
@@ -176,10 +187,11 @@ class _ChatListState extends State<ChatList> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold)), //  UserName
                     // subtitle: Text(user.recentMsg,
-                    //     style: TextStyle(
-                    //         fontSize: 15,
-                    //         fontWeight:
-                    //             FontWeight.w100)), //Last msg in one line
+                    // style: TextStyle(
+                    //     fontSize: 15,
+                    //     color: Colors.red,
+                    //     fontWeight:
+                    //         FontWeight.w100)), //Last msg in one line
                     // trailing: Text(user.timestamp),
                   ),
                 );

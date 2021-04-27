@@ -25,6 +25,7 @@ class _ContactsListState extends State<ContactsList> {
   List<Contact> appUserContacts = [];
   List<Contact> switchContact = [];
   bool present = false;
+  bool syncDone;
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
@@ -139,6 +140,9 @@ class _ContactsListState extends State<ContactsList> {
             });
           }
         }
+        setState(() {
+          syncDone = true;
+        });
       } else {
         print(':::::::::::::::::::::::::;;');
         var lcnt = pc.split(' ').join();
@@ -179,6 +183,9 @@ class _ContactsListState extends State<ContactsList> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    setState(() {
+      syncDone = false;
+    });
     getAllContacts();
   }
 
@@ -205,9 +212,12 @@ class _ContactsListState extends State<ContactsList> {
   }
 
   getAllContacts() async {
-    List<Contact> _contacts = contactPermissionsGranted() != null
-        ? (await ContactsService.getContacts(withThumbnails: false)).toList()
-        : [];
+    List<Contact> _contacts = [];
+    final check = await contactPermissionsGranted();
+    if (check != null && check == true) {
+      _contacts =
+          (await ContactsService.getContacts(withThumbnails: false)).toList();
+    }
     setState(() {
       contacts = _contacts;
     });
@@ -225,7 +235,7 @@ class _ContactsListState extends State<ContactsList> {
     return Scaffold(
       appBar: searchBar.build(context),
       body: Container(
-        child: appUserContacts.isEmpty
+        child: !syncDone //appUserContacts.isEmpty
             ? Container(
                 color: primaryColor.withAlpha(90),
                 child: SpinKitFadingCube(
@@ -274,7 +284,8 @@ class _ContactsListState extends State<ContactsList> {
                                   ),
                                   backgroundColor: accent2,
                                   radius: 30,
-                                  backgroundImage:CachedNetworkImageProvider(user.prefix)),
+                                  backgroundImage:
+                                      CachedNetworkImageProvider(user.prefix)),
                             ),
                             onTap: () => Navigator.push(
                                 context,
