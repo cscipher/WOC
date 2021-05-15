@@ -27,7 +27,10 @@ class _ContactsListState extends State<ContactsList>
   List<Contact> switchContact = [];
   bool present = false;
   bool syncDone;
+<<<<<<< HEAD
   bool noContact = false;
+=======
+>>>>>>> f2b8c7a839bff9524731a7f1c6cae3ce18b8995f
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
