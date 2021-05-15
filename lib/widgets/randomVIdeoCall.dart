@@ -14,7 +14,7 @@ import 'package:sdp_transform/sdp_transform.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 // String ip = 'http://192.168.43.79:8080';
-String ip = 'http://13.127.251.39:8080';
+String ip = 'http://192.168.1.102:8080';
 
 /*
  * webrtc video
@@ -79,9 +79,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   @override
   void initState() {
     myId = '';
-    setState(() {
-      imHere = true;
-    });
     super.initState();
     initRenderers();
     _makeCall();
@@ -132,7 +129,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       print(e.toString());
     }
     // _remoteRenderer.initialize();
-    if (!mounted) return;
+    // if (!mounted) return;
 
     setState(() {
       _inCalling = true;
@@ -181,21 +178,25 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     );
   }
 
-  disposeRenderers() {
+  disposeRenderers(bool exit) {
     // await _localStream?.dispose();
-    _localStream.dispose();
-    _localRenderer.dispose();
+    if (exit) {
+      _localStream.dispose();
+      _localRenderer.dispose();
+    }
     _remoteRenderer.dispose();
 
     if (socket != null) {
       socket.disconnect();
-      socket.clearListeners();
-      Platform.isIOS ? socket.dispose() : socket.close();
+      // socket.clearListeners();
+      // Platform.isIOS ? socket.dispose() : socket.close();
     }
     if (_peerConnection != null) {
       // _peerConnection.removeStream(_localStream);
       // _localStream.getTracks().forEach((element) => element.stop());
-      _peerConnection.close().then((value) => Navigator.pop(context));
+      _peerConnection.close().then((value) {
+        if (exit) Navigator.pop(context);
+      });
     }
   }
 
@@ -208,6 +209,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     setState(() {
       count = 0;
     });
+    socket.off('chat');
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -280,7 +282,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                         ),
 
                         color: k4,
-                        onPressed: disposeRenderers,
+                        onPressed: () => disposeRenderers(true),
                       ),
                       RaisedButton(
                         padding: EdgeInsets.all(20),
@@ -371,9 +373,12 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
                           size: 30,
                         ),
                         color: k3,
-                        onPressed: () {
-                          _hangUp();
-                          _makeCall();
+                        onPressed: () async {
+                          // _hangUp();
+                          // disposeRenderers(false);
+                          // _remoteRenderer.initialize();
+                          _remoteRenderer.srcObject = null;
+                          await iniForRecall().then((value) => _makeCall());
                         },
                       ),
                     ],
@@ -605,7 +610,6 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
       print('room_name: ' + data);
     });
 
-    // ChatData getting from server
     socket.on('chat', (data) {
       var mEncodeJson = jsonEncode(data);
       var getMsg = jsonDecode(mEncodeJson);
@@ -617,6 +621,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
         });
       print('CHAT:::$chatData');
     });
+
     //receive msg
     socket.on('msg', (data) {
       var mEncodeJson = jsonEncode(data);
@@ -688,9 +693,32 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   //**Sockets
 
   //init for recall
-  void iniForRecall() {
+  Future<void> iniForRecall() async {
     //on hang up close peer conn
-    _peerConnection.close();
+    await _peerConnection.close().then((value) {
+      socket.disconnect();
+      // socket.clearListeners();
+      // Platform.isIOS ? socket.dispose() : socket.close();
+
+      //**Initialize all variables
+      //init rendrers
+      // initRenderers();
+      _remoteRenderer.initialize();
+      //**SOCKETS VAR
+      iamInitiator = false;
+      //room name
+      roomName = 'n/a';
+      //my id
+      answerSDP = 'n/a';
+      //**SOCKETS VAR
+
+      //initialize
+      dataOffer = 'n/a';
+
+      _offer = false;
+      _inCalling = false;
+      _isTorchOn = false;
+    });
     // setState(() {
     //   _remoteRenderer.srcObject = null;
     // });
@@ -699,27 +727,5 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     // _remoteRenderer.dispose();
 
     //close socket
-    socket.disconnect();
-    socket.clearListeners();
-    Platform.isIOS ? socket.dispose() : socket.close();
-
-    //**Initialize all variables
-    //init rendrers
-    // initRenderers();
-    _remoteRenderer.initialize();
-    //**SOCKETS VAR
-    iamInitiator = false;
-    //room name
-    roomName = 'n/a';
-    //my id
-    answerSDP = 'n/a';
-    //**SOCKETS VAR
-
-    //initialize
-    dataOffer = 'n/a';
-
-    _offer = false;
-    _inCalling = false;
-    _isTorchOn = false;
   }
 }

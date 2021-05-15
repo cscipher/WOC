@@ -13,13 +13,13 @@ Widget storyButton(var storyCntct, BuildContext context) {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (_) {
                   print("id::::${storyCntct['id']}");
-                  return StoryPageView(id:storyCntct['id']);
+                  return StoryPageView(id: storyCntct['id']);
                 }), (route) => false);
               },
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: MediaQuery.of(context).size.height * 0.015,
-                    vertical: 8),
+                    vertical: 2.5),
                 child: Container(
                   // width: cnstrnt.maxWidth * 0.8,
                   // height: cnstrnt.maxHeight * 0.5,

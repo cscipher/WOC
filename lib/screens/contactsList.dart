@@ -16,7 +16,8 @@ class ContactsList extends StatefulWidget {
   _ContactsListState createState() => _ContactsListState();
 }
 
-class _ContactsListState extends State<ContactsList> {
+class _ContactsListState extends State<ContactsList>
+    with SingleTickerProviderStateMixin {
   List<Contact> contacts = [], filteredContacts = [];
   SearchBar searchBar;
   Map<String, String> updtContact;
@@ -25,6 +26,8 @@ class _ContactsListState extends State<ContactsList> {
   List<Contact> appUserContacts = [];
   List<Contact> switchContact = [];
   bool present = false;
+  bool syncDone;
+  bool noContact = false;
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
@@ -74,111 +77,125 @@ class _ContactsListState extends State<ContactsList> {
         buildDefaultAppBar: buildAppBar);
   }
 
-  getStatus() async {
+  Future getStatus() async {
     print('exe');
     // List<Map<String, dynamic>> dbData = [];
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
-    contacts.map((cntct) async {
-      var pc = cntct.phones.first.value;
-      pc = pc.split(' ').join();
-      print('fddfd');
-      var dbData = await DatabaseHelper.db.queryAll();
-      print('dbData::$dbData');
+    if (contacts.isNotEmpty)
+      contacts.map((cntct) async {
+        var pc = cntct.phones.first.value;
+        pc = pc.split(' ').join();
+        print('fddfd');
+        var dbData = await DatabaseHelper.db.queryAll();
+        print('dbData::$dbData');
 
-      if (dbData.length != 0) {
-        print('local');
-        for (var localContact in dbData) {
-          print('lc:::$localContact....pc:::${pc}');
-          if (pc == localContact['contactNum']) {
-            print('kya!');
-            setState(() {
-              appUserContacts.add(Contact(
-                  phones: [Item(value: localContact['contactNum'])],
-                  jobTitle: localContact['contactStatus'],
-                  androidAccountName: localContact['id'],
-                  prefix: localContact['contactPic'],
-                  displayName: cntct.displayName));
-              print('Contafcts:::$appUserContacts');
-            });
-            break;
-          } else if (cntct.phones.isNotEmpty) {
-            var lcnt = pc.split(' ').join();
+        if (dbData.length != 0) {
+          print('local');
+          for (var localContact in dbData) {
+            print('lc:::$localContact....pc:::${pc}');
+            if (pc == localContact['contactNum']) {
+              print('kya!');
+              setState(() {
+                appUserContacts.add(Contact(
+                    phones: [Item(value: localContact['contactNum'])],
+                    jobTitle: localContact['contactStatus'],
+                    androidAccountName: localContact['id'],
+                    prefix: localContact['contactPic'],
+                    displayName: cntct.displayName));
+                print('Contafcts:::$appUserContacts');
+              });
+              break;
+            } else if (cntct.phones.isNotEmpty) {
+              var lcnt = pc.split(' ').join();
 
-            await ref.where('phnNo', isEqualTo: lcnt).get().then((value) async {
-              var contactMap = value.docs;
-              if (contactMap.length != 0 && contactMap != null) {
-                print('not::');
-                print(contactMap);
-                var map = contactMap.first.data();
-                print('from db///${map['phnNo']}');
-                // setState(() {
-                //   appUserContacts.add(Contact(
-                //       phones: [Item(value: map['phnNo'])],
-                //       jobTitle: map['status'],
-                //       androidAccountName: map['authId'],
-                //       displayName: cntct.displayName));
-                //   print('add');
-                // });
-                var tempQuery = await DatabaseHelper.db.queryAll();
-                bool flag = true;
-                for (var tc in tempQuery) {
-                  if (map['authId'] == tc['id']) {
-                    flag = false;
-                    break;
+              await ref
+                  .where('phnNo', isEqualTo: lcnt)
+                  .get()
+                  .then((value) async {
+                var contactMap = value.docs;
+                if (contactMap.length != 0 && contactMap != null) {
+                  print('not::');
+                  print(contactMap);
+                  var map = contactMap.first.data();
+                  print('from db///${map['phnNo']}');
+                  // setState(() {
+                  //   appUserContacts.add(Contact(
+                  //       phones: [Item(value: map['phnNo'])],
+                  //       jobTitle: map['status'],
+                  //       androidAccountName: map['authId'],
+                  //       displayName: cntct.displayName));
+                  //   print('add');
+                  // });
+                  var tempQuery = await DatabaseHelper.db.queryAll();
+                  bool flag = true;
+                  for (var tc in tempQuery) {
+                    if (map['authId'] == tc['id']) {
+                      flag = false;
+                      break;
+                    }
                   }
+                  if (flag)
+                    DatabaseHelper.db.insert({
+                      DatabaseHelper.colId: map['authId'],
+                      DatabaseHelper.colPic: map['photourl'],
+                      DatabaseHelper.colNum: map['phnNo'],
+                      DatabaseHelper.colStatus: map['status'],
+                      DatabaseHelper.colName: cntct.displayName
+                    }).then((value) => print('db insert....'));
                 }
-                if (flag)
-                  DatabaseHelper.db.insert({
-                    DatabaseHelper.colId: map['authId'],
-                    DatabaseHelper.colPic: map['photourl'],
-                    DatabaseHelper.colNum: map['phnNo'],
-                    DatabaseHelper.colStatus: map['status'],
-                    DatabaseHelper.colName: cntct.displayName
-                  }).then((value) => print('db insert....'));
-              }
-            });
+              });
+            }
           }
-        }
-      } else {
-        print(':::::::::::::::::::::::::;;');
-        var lcnt = pc.split(' ').join();
+          setState(() {
+            syncDone = true;
+          });
+        } else {
+          print(':::::::::::::::::::::::::;;');
+          var lcnt = pc.split(' ').join();
 
-        await ref.where('phnNo', isEqualTo: lcnt).get().then((value) {
-          var contactMap = value.docs;
-          if (contactMap.length != 0) {
-            print('not::');
-            print(contactMap);
-            var map = contactMap.first.data();
-            print('from db///${map['phnNo']}');
-            // setState(() {
-            //   appUserContacts.add(Contact(
-            //       phones: [Item(value: map['phnNo'])],
-            //       jobTitle: map['status'],
-            //       androidAccountName: map['authId'],
-            //       displayName: cntct.displayName));
-            //   print('add');
-            // });
-            DatabaseHelper.db.insert({
-              DatabaseHelper.colId: map['authId'],
-              DatabaseHelper.colNum: map['phnNo'],
-              DatabaseHelper.colStatus: map['status'],
-              DatabaseHelper.colPic: map['photourl'],
-              DatabaseHelper.colName: cntct.displayName
-            }).then((value) async {
-              print('db insert');
-              var t = await DatabaseHelper.db.queryAll();
-              print(t);
+          await ref.where('phnNo', isEqualTo: lcnt).get().then((value) {
+            var contactMap = value.docs;
+            if (contactMap.length != 0) {
+              print('not::');
+              print(contactMap);
+              var map = contactMap.first.data();
+              print('from db///${map['phnNo']}');
+              // setState(() {
+              //   appUserContacts.add(Contact(
+              //       phones: [Item(value: map['phnNo'])],
+              //       jobTitle: map['status'],
+              //       androidAccountName: map['authId'],
+              //       displayName: cntct.displayName));
+              //   print('add');
+              // });
+              DatabaseHelper.db.insert({
+                DatabaseHelper.colId: map['authId'],
+                DatabaseHelper.colNum: map['phnNo'],
+                DatabaseHelper.colStatus: map['status'],
+                DatabaseHelper.colPic: map['photourl'],
+                DatabaseHelper.colName: cntct.displayName
+              }).then((value) async {
+                print('db insert');
+                var t = await DatabaseHelper.db.queryAll();
+                print(t);
+              });
+            }
+          }).then((value) {
+            setState(() {
+              syncDone = true;
             });
-          }
-        });
-      }
-    }).toList();
+          });
+        }
+      }).toList();
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    setState(() {
+      syncDone = false;
+    });
     getAllContacts();
   }
 
@@ -205,13 +222,22 @@ class _ContactsListState extends State<ContactsList> {
   }
 
   getAllContacts() async {
-    List<Contact> _contacts = contactPermissionsGranted() != null
-        ? (await ContactsService.getContacts(withThumbnails: false)).toList()
-        : [];
+    List<Contact> _contacts = [];
+    final check = await contactPermissionsGranted();
+    if (check != null && check == true) {
+      _contacts =
+          (await ContactsService.getContacts(withThumbnails: false)).toList();
+    }
     setState(() {
       contacts = _contacts;
     });
-    await getStatus();
+    await getStatus().then((value) {
+      if (appUserContacts.isEmpty) {
+        setState(() {
+          noContact = true;
+        });
+      }
+    });
   }
 
   @override
@@ -225,7 +251,7 @@ class _ContactsListState extends State<ContactsList> {
     return Scaffold(
       appBar: searchBar.build(context),
       body: Container(
-        child: appUserContacts.isEmpty
+        child: !syncDone //appUserContacts.isEmpty
             ? Container(
                 color: primaryColor.withAlpha(90),
                 child: SpinKitFadingCube(
@@ -233,36 +259,52 @@ class _ContactsListState extends State<ContactsList> {
                   size: 50.0,
                 ),
               )
-            : Container(
-                padding: const EdgeInsets.all(18.0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    var user = switchContact[index];
-                    // var items = contacts[index].phones;
-                    // bool check = items.isEmpty;
-                    return Container(
-                        decoration: BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(
-                          color: accent2.withAlpha(80),
-                        ))),
-                        // padding: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
-                        // child: FlatButton(
-                        //   child: Text('reset'),
-                        //   onPressed: DatabaseHelper.db.deleteDatabase,
-                        // ),
-                        child: ListTile(
-                            leading: GestureDetector(
-                              onTap: () {
-                                // Navigator.of(context).push(HeroDialogRoute)
-                                createPopup(
-                                    context, user.prefix, user.jobTitle);
-                              },
-                              child: CircleAvatar(
-                                  child: Container(
-                                    child:
-                                        user.prefix == '' || user.prefix == null
+            : appUserContacts.isEmpty
+                ? Container(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal:
+                                MediaQuery.of(context).size.width * 0.05),
+                        child: Text(
+                          'No Contacts found registered to app! 🤷',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(18.0),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        var user = switchContact[index];
+                        // var items = contacts[index].phones;
+                        // bool check = items.isEmpty;
+                        return Container(
+                            decoration: BoxDecoration(
+                                border: Border(
+                                    bottom: BorderSide(
+                              color: accent2.withAlpha(80),
+                            ))),
+                            // padding: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
+                            // child: FlatButton(
+                            //   child: Text('reset'),
+                            //   onPressed: DatabaseHelper.db.deleteDatabase,
+                            // ),
+                            child: ListTile(
+                                leading: GestureDetector(
+                                  onTap: () {
+                                    // Navigator.of(context).push(HeroDialogRoute)
+                                    createPopup(
+                                        context, user.prefix, user.jobTitle);
+                                  },
+                                  child: CircleAvatar(
+                                      child: Container(
+                                        child: user.prefix == '' ||
+                                                user.prefix == null
                                             ? Container(
                                                 // color: primaryColor.withAlpha(90),
                                                 child: SpinKitPulse(
@@ -271,28 +313,31 @@ class _ContactsListState extends State<ContactsList> {
                                                 ),
                                               )
                                             : null,
-                                  ),
-                                  backgroundColor: accent2,
-                                  radius: 30,
-                                  backgroundImage:CachedNetworkImageProvider(user.prefix)),
-                            ),
-                            onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (ctx) => ChatPage(
-                                        user.androidAccountName, //uid
-                                        user.displayName))),
-                            title: Text(user.displayName.toString(),
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            subtitle: Text(user.jobTitle ?? '',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w100))));
-                  },
-                  itemCount: switchContact.length,
-                ),
-              ),
+                                      ),
+                                      backgroundColor: accent2,
+                                      radius: 30,
+                                      backgroundImage:
+                                          CachedNetworkImageProvider(
+                                              user.prefix)),
+                                ),
+                                onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (ctx) => ChatPage(
+                                            user.androidAccountName, //uid
+                                            user.displayName))),
+                                title: Text(user.displayName.toString(),
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                subtitle: Text(user.jobTitle ?? '',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w100))));
+                      },
+                      itemCount: switchContact.length,
+                    ),
+                  ),
       ),
     );
   }

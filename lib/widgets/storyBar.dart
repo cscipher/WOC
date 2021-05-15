@@ -79,11 +79,13 @@ class _StoryBarState extends State<StoryBar> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) {
-              return StoryPageView(id:uid, admin:true);
+              return StoryPageView(id: uid, admin: true);
             }), (route) => false);
           },
           child: Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.height * 0.015,
+                vertical: 2.5),
             child: Container(
               // width: cnstrnt.maxWidth * 0.8,
               // height: cnstrnt.maxHeight * 0.5,

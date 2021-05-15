@@ -15,7 +15,8 @@ class Settings extends StatefulWidget {
   _SettingsState createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class _SettingsState extends State<Settings>
+    with SingleTickerProviderStateMixin {
   static String name, status, picUrl = '';
   final TextEditingController _nameController = TextEditingController(text: '');
   final TextEditingController _statusController =

@@ -63,7 +63,7 @@ class _NewStoryState extends State<NewStory> {
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: MediaQuery.of(context).size.height * 0.015,
-                vertical: 8),
+                vertical: 2.5),
             child: GestureDetector(
               onTap: () => _imgFromGallery(),
               child: Container(
@@ -82,9 +82,7 @@ class _NewStoryState extends State<NewStory> {
             ),
           ),
         ),
-        SizedBox(
-          height: 6,
-        ),
+        SizedBox(height: 6),
         Text('New Story!'),
       ],
     );

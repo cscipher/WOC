@@ -9,6 +9,7 @@ import 'package:WOC/widgets/randomVIdeoCall.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import './screens/splash_screen.dart';
 import './themes/colors.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,6 +20,8 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
   var initializationSettingsAndroid =
       AndroidInitializationSettings('ic_launcher');
   var initializationSettingsIOS = IOSInitializationSettings(
@@ -32,7 +35,7 @@ void main() async {
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: (String payload) async {
     if (payload != null) {
-      debugPrint('notification payload: ' + payload);
+      print('notification payload: ' + payload);
     }
   });
   await Firebase.initializeApp();
