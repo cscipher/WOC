@@ -13,8 +13,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:sdp_transform/sdp_transform.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-// String ip = 'http://192.168.43.79:8080';
-String ip = 'http://192.168.1.102:8080';
+String ip = 'http://192.168.88.253:8080'; // Server ip
 
 /*
  * webrtc video

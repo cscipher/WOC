@@ -56,7 +56,7 @@ class _StoryPageViewState extends State<StoryPageView> {
                 'This will delete your last recent story. You wish to continue?'),
             actions: [
               FlatButton(
-                  onPressed: _deleteStory,
+                  onPressed: () => popPage(true),
                   child: Text(
                     'Delete',
                     style: TextStyle(color: neutralRed),
@@ -84,10 +84,14 @@ class _StoryPageViewState extends State<StoryPageView> {
             .getStorage()
             .getReferenceFromUrl(lst);
         fbStorage.delete().whenComplete(() {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (ctx) => HomeScreen(showSnack: 'Story deleted!')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Deleted!'),
+              duration: const Duration(seconds: 3),
+              padding: EdgeInsets.only(bottom: 15, left: 15, top: 5)));
+          // Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(
+          //         builder: (ctx) => HomeScreen(showSnack: 'Story deleted!')));
         });
       });
     });
@@ -107,20 +111,23 @@ Navigator.pushReplacement(
     getAllStoriesData();
   }
 
-  popPage() {
+  popPage(toDelete) {
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (ctx) => HomeScreen()));
+        context,
+        MaterialPageRoute(
+            builder: (ctx) =>
+                toDelete ? HomeScreen(fn: _deleteStory()) : HomeScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: SwipeDetector(
-        onSwipeDown: popPage,
+        onSwipeDown: () => popPage(false),
         child: Stack(children: [
           StoryView(
             storyItems: stories,
-            onComplete: popPage,
+            onComplete: () => popPage(false),
             controller: controller,
             inline: false,
             repeat: true,

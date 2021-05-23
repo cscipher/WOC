@@ -27,9 +27,7 @@ class _NewStoryState extends State<NewStory> {
     File croppedFile = await ImageCropper.cropImage(
         sourcePath: picked.path,
         aspectRatioPresets: Platform.isAndroid
-            ? [
-                CropAspectRatioPreset.square,
-              ]
+            ? [CropAspectRatioPreset.square, CropAspectRatioPreset.original]
             : [
                 CropAspectRatioPreset.square,
               ],
@@ -51,8 +49,6 @@ class _NewStoryState extends State<NewStory> {
           MaterialPageRoute(builder: (ctx) => AddStoryPreview(picked)));
     }
   }
-
-  _addStory() {}
 
   @override
   Widget build(BuildContext context) {

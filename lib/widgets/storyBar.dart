@@ -60,13 +60,12 @@ class _StoryBarState extends State<StoryBar> {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
-        .get()
-        .then((value) {
+        .snapshots()
+        .listen((value) {
       setState(() {
         pic = value.data()['photourl'];
         name = 'Your Story';
         selfStories = value.data()['storiesData'];
-        print('sfdsffsdfsdfsd:::::::::::::::::$selfStories');
       });
     });
   }

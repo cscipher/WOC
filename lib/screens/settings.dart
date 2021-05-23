@@ -21,11 +21,10 @@ class _SettingsState extends State<Settings>
   final TextEditingController _nameController = TextEditingController(text: '');
   final TextEditingController _statusController =
       TextEditingController(text: '');
-  // final String uid =
-  //     '3xLsJBJgk4a0E2QdZl93S4RGJtv1'; //FirebaseAuth.instance.currentUser.uid;
   final String uid = FirebaseAuth.instance.currentUser.uid;
   File _image;
   bool runner = true;
+  bool updateDone = true;
 
   Future _imgFromGallery() async {
     File image = await ImagePicker.pickImage(
@@ -85,6 +84,9 @@ class _SettingsState extends State<Settings>
   }
 
   Future _updateProfile() async {
+    setState(() {
+      updateDone = false;
+    });
     if (_image != null) {
       String ext = _image.path.toString().split('.').last;
       final StorageReference fbStorage =
@@ -98,11 +100,14 @@ class _SettingsState extends State<Settings>
           CollectionReference ref =
               FirebaseFirestore.instance.collection('users');
           ref.doc(uid).update({
-            'name': name,
-            'status': status,
+            'name': _nameController.text,
+            'status': _statusController.text,
             'photourl': picUrl
           }).then((value) {
-            Scaffold.of(context).showSnackBar(SnackBar(
+            setState(() {
+              updateDone = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: const Text('Updated!'),
                 duration: const Duration(seconds: 3),
                 padding: EdgeInsets.only(bottom: 15, left: 15, top: 5)));
@@ -111,8 +116,14 @@ class _SettingsState extends State<Settings>
       });
     } else {
       CollectionReference ref = FirebaseFirestore.instance.collection('users');
-      ref.doc(uid).update({'name': name, 'status': status}).then((value) {
-        Scaffold.of(context).showSnackBar(SnackBar(
+      ref.doc(uid).update({
+        'name': _nameController.text,
+        'status': _statusController.text
+      }).then((value) {
+        setState(() {
+          updateDone = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: const Text('Updated!'),
             duration: const Duration(seconds: 3),
             padding: EdgeInsets.only(bottom: 15, left: 15, top: 5)));
@@ -122,9 +133,8 @@ class _SettingsState extends State<Settings>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    runner ? _getDataFromDB() : null;
+    if (runner) _getDataFromDB();
   }
 
   @override
@@ -238,13 +248,15 @@ class _SettingsState extends State<Settings>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(7.0),
                       ),
-                      onPressed: _updateProfile,
+                      onPressed: updateDone ? _updateProfile : () {},
                       child: Text(
                         'Update',
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       minWidth: MediaQuery.of(context).size.width * 0.9,
-                      color: primaryColor,
+                      color: updateDone
+                          ? primaryColor
+                          : primaryColor.withAlpha(100),
                     )
                   ],
                 ),

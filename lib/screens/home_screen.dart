@@ -16,8 +16,8 @@ import '../widgets/chats.dart';
 
 class HomeScreen extends StatefulWidget {
   int nav;
-  final String showSnack;
-  HomeScreen({this.nav = 0, this.showSnack = 'ffff'});
+  Function fn;
+  HomeScreen({this.nav = 0, this.fn});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -43,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.fn != null) widget.fn();
     if (FirebaseAuth.instance.currentUser != null)
       uid = FirebaseAuth.instance.currentUser.uid;
   }

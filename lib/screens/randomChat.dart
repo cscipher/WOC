@@ -33,33 +33,13 @@ class _RandomChatState extends State<RandomChat> {
   final TextEditingController _msgControl = TextEditingController();
   String msg;
   ScrollController _scrollController;
-  // String ip = 'http://192.168.43.79:8080';
-  String ip = 'http://192.168.88.252:8080';
+  String ip = 'http://192.168.88.253:8080'; // Server ip
   var countUsers = 0;
   CollectionReference ref = FirebaseFirestore.instance.collection('randomChat');
   bool completeMems = false;
+  List userList = [];
 
-  void deleteFromDb() {
-    ref.doc(widget.roomName).get().then((value) {
-      List data = value.data()['users'];
-      if (data.isNotEmpty) data.removeLast();
-      ref.doc(widget.roomName).update({'users': data});
-    });
-  }
-
-  void checkRoomsDb() {
-    ref.doc(widget.roomName).snapshots().listen((event) {
-      var d = event.data();
-      List data;
-      if (d != null) data = d['users'];
-      if (data != null && data.length == 2) {
-        setState(() {
-          completeMems = true;
-          print('doneeeeeee!');
-        });
-      }
-    });
-  }
+  
 
   //SocketIo Client instance
   void sendChatData(chatval) {
@@ -93,26 +73,12 @@ class _RandomChatState extends State<RandomChat> {
   startSockets() {
     //**events
     //on connect
-    // widget.socket.on(event, (data) => null)
-    widget.socket.onConnect((_) {
+    widget.socket.onConnect((callback) {
+      print('callbackCC:::$callback');
       if (this.mounted)
         setState(() {
           widget.myId = widget.socket.id;
         });
-      // if (widget.roomName != null && widget.roomName.isNotEmpty)
-      //   ref.doc(widget.roomName).get().then((value) {
-      //     var d = value.data();
-      //     List data;
-      //     if (d != null) data = d['users'];
-      //     print('DATA:::$data');
-      //     if (data == null || data.isEmpty)
-      //       data = [widget.myId];
-      //     else
-      //       data.add(widget.myId);
-      //     print('DATA1:::$data');
-      //     ref.doc(widget.roomName).update({'users': data});
-      //   });
-
       print('connect: ' + widget.myId);
     });
     //on disconnect
@@ -121,30 +87,13 @@ class _RandomChatState extends State<RandomChat> {
         widget.chatData.clear();
         widget.myId = '';
       });
-      print('disconnected..');
+      print('disconnected..$data');
     });
 
     widget.socket.on('roomName', (data) {
       if (this.mounted)
         setState(() {
           widget.roomName = data;
-        });
-      ref
-          .doc(widget.roomName)
-          .set({'room': widget.roomName}, SetOptions(merge: true));
-      print('room_name: ' + data);
-      if (widget.roomName != null && widget.roomName.isNotEmpty)
-        ref.doc(widget.roomName).get().then((value) {
-          var d = value.data();
-          List data;
-          if (d != null) data = d['users'];
-          print('DATA:::$data');
-          if (data == null || data.isEmpty)
-            data = [widget.myId];
-          else
-            data.add(widget.myId);
-          print('DATA1:::$data');
-          ref.doc(widget.roomName).update({'users': data});
         });
     });
 
@@ -155,6 +104,19 @@ class _RandomChatState extends State<RandomChat> {
           countUsers = data;
         });
     });
+
+    widget.socket.on('chat', (data) {
+      var mEncodeJson = jsonEncode(data);
+      var getMsg = jsonDecode(mEncodeJson);
+      print('MESSAAA:::$getMsg');
+      if (this.mounted)
+        setState(() {
+          widget.chatData.add(getMsg);
+        });
+      scrollToBottom();
+      print('CHAT:::${widget.chatData}');
+    });
+
   }
 
   sock() {
@@ -176,29 +138,32 @@ class _RandomChatState extends State<RandomChat> {
       setState(() {
         widget.chatData.clear();
       });
-      // Navigator.pop(context);
+    });
+  }
+
+  void initAll() {
+    setState(() {
+      _scrollController = ScrollController();
+
+      if (widget.isStandalone) {
+        widget.chatData = [];
+        widget.myId = '';
+        widget.roomName = '';
+        widget.socket = IO.io(ip, <String, dynamic>{
+          'transports': ['websocket'],
+          'autoConnect': false,
+        });
+        widget.socket.connect();
+        startSockets();
+      } else
+        sock();
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-
-    if (widget.isStandalone) {
-      checkRoomsDb();
-      widget.chatData = [];
-      widget.myId = '';
-      widget.roomName = '';
-      widget.socket = IO.io(ip, <String, dynamic>{
-        'transports': ['websocket'],
-        'autoConnect': false,
-      });
-      widget.socket.connect();
-      startSockets();
-      print('id is:::::::::::::::::::::::::::::${widget.myId}');
-    }
-    sock();
+    initAll();
   }
 
   Widget loaderContainer() {
@@ -251,11 +216,7 @@ class _RandomChatState extends State<RandomChat> {
                       // size: 20,
                     ),
               onPressed: () {
-                if (widget.isStandalone) {
-                  widget.socket.disconnect();
-                }
-                deleteFromDb();
-                // widget.socket.off('chat');
+                widget.socket.disconnect();
                 Navigator.pop(context);
               }),
         ),
@@ -272,32 +233,14 @@ class _RandomChatState extends State<RandomChat> {
                     ),
                     onPressed: () {
                       //Skip logic
-                      deleteFromDb();
                       widget.socket.disconnect();
-                      setState(() {
-                        _scrollController = ScrollController();
-
-                        if (widget.isStandalone) {
-                          widget.chatData = [];
-                          widget.myId = '';
-                          widget.roomName = '';
-                          widget.socket = IO.io(ip, <String, dynamic>{
-                            'transports': ['websocket'],
-                            'autoConnect': false,
-                          });
-                          widget.socket.connect();
-                          startSockets();
-                          print(
-                              'id is:::::::::::::::::::::::::::::${widget.myId}');
-                        }
-                        sock();
-                      });
+                      initAll();
                     }),
               ]
             : [],
       ),
       body: widget.isStandalone
-          ? !completeMems
+          ? !(widget.socket.connected)
               ? loaderContainer()
               : Stack(
                   children: <Widget>[
@@ -534,3 +477,4 @@ class _RandomChatState extends State<RandomChat> {
     );
   }
 }
+
